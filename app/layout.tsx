@@ -1,22 +1,12 @@
 import { Poppins } from "next/font/google";
 import { ThemeProvider } from "@/components/provider/theme-provider";
+import { Navbar } from "@/components/layout/navbar";
 import type { Metadata } from "next";
 import "./globals.css";
-import { Navbar } from "@/components/layout/navbar";
 
 const poppins = Poppins({
   subsets: ["latin-ext"],
-  weight: [
-    "100",
-    "200",
-    "300",
-    "400",
-    "500",
-    "600",
-    "700",
-    "800",
-    "900",
-  ],
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
   fallback: ["system-ui", "sans-serif"],
 });
 
@@ -33,7 +23,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${poppins} antialiased`}>
+      <body className={`${poppins.className} antialiased dark:bg-slate-900`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
