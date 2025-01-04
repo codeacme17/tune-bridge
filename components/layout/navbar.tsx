@@ -8,7 +8,7 @@ export const Navbar = () => {
   const { theme, setTheme } = useTheme();
 
   return (
-    <nav className="flex justify-between py-2 px-4 bg-gray-100 dark:bg-gray-900">
+    <nav className="flex justify-between py-2 px-4">
       <div className="items-center flex">
         <h1 className="text-xl font-light">Tune Bridge</h1>
       </div>

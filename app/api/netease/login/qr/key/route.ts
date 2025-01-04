@@ -10,18 +10,13 @@ export const GET = async (req: Request) => {
   }
 
   try {
-    const res = await fetch(
-      `https://apis.netstart.cn/music/login/cellphone?phone=${phone}&password=${password}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const res = await fetch(`https://apis.netstart.cn/music/login/qr/key`, {
+      method: "GET",
+    });
 
     if (!res.ok) throw new Error(`[netease login GET] Error: ${res.status}`);
     const data = await res.json();
+    console.log("[/login/qr/key] data ====>", data);
     return new NextResponse(JSON.stringify(data));
   } catch (error) {
     console.log("[netease login GET] Error: ", error);

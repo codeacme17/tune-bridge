@@ -1,4 +1,4 @@
-import { BrandCard } from "@/components/brand-card";
+import { Netease } from "@/components/brand/netease";
 
 const Home = () => {
   return (
@@ -6,7 +6,7 @@ const Home = () => {
       <h1 className="text-2xl font-light">Welcome to Tune Bridge</h1>
 
       <div className="flex">
-        <BrandCard />
+        <Netease />
       </div>
     </div>
   );
