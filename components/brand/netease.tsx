@@ -18,6 +18,7 @@ import { NeteaseIcon } from "../icon/netease";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { apis } from "@/apis";
 
 type TabType = "qrCode" | "password";
 
@@ -41,11 +42,12 @@ export const Netease = () => {
   const [isLogin, setIsLogin] = useState(false);
 
   // store the key for qr code
-  const unikey = useRef(null);
+  const unikey = useRef<string>(null);
 
   useEffect(() => {
-    if (!isOpenDialog) return;
+    getUserAccount();
 
+    if (!isOpenDialog) return;
     const hasLogin = localStorage.getItem("netease");
     if (hasLogin) setIsLogin(true);
   }, [isOpenDialog]);
@@ -79,18 +81,12 @@ export const Netease = () => {
   const getQRCode = async () => {
     try {
       setGetQRCodeLoading(true);
-      const keyRes = await fetch(`/api/netease/login/qr/key`, {
-        method: "GET",
-      });
-      const { data: keyData } = await keyRes.json();
-      const { unikey: key } = keyData || {};
+      const keyRes = await apis.netease.createQRCode();
+      const { unikey: key, qrimg } = keyRes as unknown as {
+        unikey: string;
+        qrimg: string;
+      };
       unikey.current = key;
-
-      const createRes = await fetch(`/api/netease/login/qr/create?key=${key}`, {
-        method: "GET",
-      });
-      const { data: createData } = await createRes.json();
-      const { qrimg } = createData || {};
 
       setQrImg(qrimg);
       setGetQRCodeLoading(false);
@@ -101,23 +97,32 @@ export const Netease = () => {
 
   const queryQrStatus = async () => {
     if (!unikey.current) return;
-    const res = await fetch(
-      `/api/netease/login/qr/check?key=${unikey.current}`,
-      {
-        method: "GET",
-      }
-    );
-    const { code } = await res.json();
+
+    const res = await apis.netease.queryQrStatus(unikey.current);
+    const { code, cookie } = res as unknown as {
+      code: QRStatus;
+      cookie: string;
+    };
+
     setQrStatus(code);
 
     if (code === QRStatus.CONFIRMED) {
       setIsOpenDialog(false);
       localStorage.setItem("netease", "true");
+      localStorage.setItem("netease-cookie", cookie);
       toast({
         title: "Netease Login success",
         description: "You have successfully logged in to Netease",
       });
     }
+  };
+
+  const getUserAccount = async () => {
+    const cookie = localStorage.getItem("netease-cookie");
+    if (!cookie) return;
+
+    const res = await apis.netease.getUserAccount(cookie);
+    console.log("res", res);
   };
 
   const handleSubmit = async () => {
