@@ -1,6 +1,7 @@
 import { Poppins } from "next/font/google";
 import { ThemeProvider } from "@/components/provider/theme-provider";
 import { Navbar } from "@/components/layout/navbar";
+import { Toaster } from "@/components/ui/toaster";
 import type { Metadata } from "next";
 import "./globals.css";
 
@@ -31,6 +32,8 @@ export default function RootLayout({
           disableTransitionOnChange>
           <Navbar />
           <main>{children}</main>
+
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

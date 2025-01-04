@@ -4,11 +4,9 @@ export const GET = async (req: Request) => {
   const urlQuery = new URLSearchParams(req.url?.split("?")[1]);
   const key = urlQuery.get("key");
 
-  console.log("[/login/qr/create] key ====>", key);
-
   try {
     const res = await fetch(
-      `https://apis.netstart.cn/music/login/qr/check?key=${key}`,
+      `https://apis.netstart.cn/music/login/qr/check?key=${key}&timestamp=${Date.now()}`,
       {
         method: "GET",
       }
@@ -16,8 +14,9 @@ export const GET = async (req: Request) => {
 
     if (!res.ok) throw new Error(`[netease login GET] Error: ${res.status}`);
     const data = await res.json();
-    console.log("[/login/qr/key] data ====>", data);
-    return new NextResponse(JSON.stringify(data));
+    const response = new NextResponse(JSON.stringify(data));
+    response.headers.append("Set-Cookie", data.cookie);
+    return response;
   } catch (error) {
     console.log("[netease login GET] Error: ", error);
     return new NextResponse(error as string, { status: 500 });

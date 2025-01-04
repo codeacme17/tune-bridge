@@ -17,16 +17,27 @@ import { Label } from "@/components/ui/label";
 import { NeteaseIcon } from "../icon/netease";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 type TabType = "qrCode" | "password";
 
+enum QRStatus {
+  EXPIRED = 800,
+  PENDING = 801,
+  SCANED = 802,
+  CONFIRMED = 803,
+}
+
 export const Netease = () => {
+  const { toast } = useToast();
+
   const [isOpenDialog, setIsOpenDialog] = useState(false);
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [qrImg, setQrImg] = useState("");
   const [currentTab, setCurrentTab] = useState<TabType>("qrCode");
   const [getQRCodeLoading, setGetQRCodeLoading] = useState(false);
+  const [qrStatus, setQrStatus] = useState<QRStatus>(QRStatus.PENDING);
 
   // store the key for qr code
   const unikey = useRef(null);
@@ -37,10 +48,15 @@ export const Netease = () => {
   }, [isOpenDialog, currentTab]);
 
   useEffect(() => {
-    if (!unikey.current) return;
+    if (!unikey.current || !qrImg) return;
 
     const timer = setInterval(() => {
-      if ((!isOpenDialog || currentTab !== "qrCode") && timer) {
+      if (
+        (!isOpenDialog ||
+          currentTab !== "qrCode" ||
+          qrStatus === QRStatus.EXPIRED) &&
+        timer
+      ) {
         clearInterval(timer);
         return;
       }
@@ -50,7 +66,7 @@ export const Netease = () => {
     return () => {
       clearInterval(timer);
     };
-  }, [isOpenDialog, currentTab]);
+  }, [isOpenDialog, currentTab, qrImg, qrStatus]);
 
   const getQRCode = async () => {
     try {
@@ -83,9 +99,17 @@ export const Netease = () => {
         method: "GET",
       }
     );
-    const { data } = await res.json();
+    const { code } = await res.json();
+    setQrStatus(code);
 
-    console.log("data", data);
+    if (code === QRStatus.CONFIRMED) {
+      setIsOpenDialog(false);
+      localStorage.setItem("netease", "true");
+      toast({
+        title: "Netease Login success",
+        description: "You have successfully logged in to Netease",
+      });
+    }
   };
 
   const handleSubmit = async () => {
@@ -96,6 +120,16 @@ export const Netease = () => {
       }
     );
     console.log("res", res);
+  };
+
+  const hanldeDialogChange = (value: boolean) => {
+    if (value) {
+      setIsOpenDialog(value);
+    } else {
+      setIsOpenDialog(value);
+      setQrImg("");
+      setQrStatus(QRStatus.PENDING);
+    }
   };
 
   return (
@@ -110,7 +144,7 @@ export const Netease = () => {
         Netease
       </Button>
 
-      <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
+      <Dialog open={isOpenDialog} onOpenChange={hanldeDialogChange}>
         <DialogContent className="sm:max-w-[525px] w-fit">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -155,25 +189,34 @@ export const Netease = () => {
                       <Loader className="animate-spin" />
                     </div>
                   ) : (
-                    <div className="flex flex-col items-center gap-4">
-                      <Image
-                        src={qrImg}
-                        width={200}
-                        height={200}
-                        alt="Picture of the author"
-                        className="rounded-md"
-                      />
+                    <div className="flex flex-col gap-4">
+                      {qrImg && (
+                        <Image
+                          src={qrImg}
+                          width={200}
+                          height={200}
+                          alt="Picture of the author"
+                          className="rounded-md"
+                        />
+                      )}
 
-                      <div className="w-full h-full flex items-center justify-center gap-4 absolute bg-gray-300/80">
-                        <Button
-                          variant="outline"
-                          className=""
-                          onClick={() => {
-                            getQRCode();
-                          }}>
-                          Refresh
-                        </Button>
-                      </div>
+                      {(qrStatus === QRStatus.EXPIRED ||
+                        qrStatus === QRStatus.SCANED) && (
+                        <div className="w-full h-full flex items-center justify-center gap-4 absolute bg-gray-300/80">
+                          {qrStatus === QRStatus.EXPIRED ? (
+                            <Button
+                              variant="outline"
+                              className=""
+                              onClick={() => {
+                                getQRCode();
+                              }}>
+                              Refresh
+                            </Button>
+                          ) : (
+                            <p className="text-gray-950">SCANED</p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
