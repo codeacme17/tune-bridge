@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,8 +18,31 @@ import { NeteaseIcon } from "../icon/netease";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const Netease = () => {
+  const [isOpenDialog, setIsOpenDialog] = useState(false);
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [qrImg, setQrImg] = useState("");
+
+  useEffect(() => {
+    if (!isOpenDialog) return;
+    getQRCode();
+  }, [isOpenDialog]);
+
+  const getQRCode = async () => {
+    const keyRes = await fetch(`/api/netease/login/qr/key`, {
+      method: "GET",
+    });
+    const { data: keyData } = await keyRes.json();
+    const { unikey: key } = keyData || {};
+
+    const createRes = await fetch(`/api/netease/login/qr/create?key=${key}`, {
+      method: "GET",
+    });
+    const { data: createData } = await createRes.json();
+    const { qrimg } = createData || {};
+
+    setQrImg(qrimg);
+  };
 
   const handleSubmit = async () => {
     const res = await fetch(
@@ -34,14 +56,17 @@ export const Netease = () => {
 
   return (
     <section>
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button variant="outline" className="mt-10">
-            <NeteaseIcon className="fill-black dark:fill-white" />
-            Netease
-          </Button>
-        </DialogTrigger>
+      <Button
+        variant="outline"
+        className="mt-10"
+        onClick={() => {
+          setIsOpenDialog(true);
+        }}>
+        <NeteaseIcon className="fill-black dark:fill-white" />
+        Netease
+      </Button>
 
+      <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
         <DialogContent className="sm:max-w-[525px] w-fit">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -62,7 +87,7 @@ export const Netease = () => {
               <TabsTrigger value="password">Password</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="qrCode">
+            <TabsContent value="qrCode" className="mt-2">
               <div className="flex justify-center gap-2">
                 <div>
                   <Image
@@ -74,11 +99,12 @@ export const Netease = () => {
                 </div>
                 <div className="flex items-center">
                   <Image
-                    src="https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg"
-                    width={220}
-                    height={100}
+                    src={qrImg}
+                    width={200}
+                    height={200}
                     alt="Picture of the author"
                   />
+                  {/* <QRCode value={qrCodeUrl} /> */}
                 </div>
               </div>
             </TabsContent>

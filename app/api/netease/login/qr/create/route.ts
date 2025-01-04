@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
 
-export const GET = async () => {
+export const GET = async (req: Request) => {
+  const urlQuery = new URLSearchParams(req.url?.split("?")[1]);
+  const key = urlQuery.get("key");
+
+  console.log("[/login/qr/create] key ====>", key);
+
   try {
     const res = await fetch(
-      `https://apis.netstart.cn/music/login/qr/key?&timestamp=${Date.now()}`,
+      `https://apis.netstart.cn/music/login/qr/create?key=${key}&qrimg=true`,
       {
         method: "GET",
       }
