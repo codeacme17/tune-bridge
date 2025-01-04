@@ -11,7 +11,6 @@ export const GET = async () => {
 
     if (!res.ok) throw new Error(`[netease login GET] Error: ${res.status}`);
     const data = await res.json();
-    console.log("[/login/qr/key] data ====>", data);
     return new NextResponse(JSON.stringify(data));
   } catch (error) {
     console.log("[netease login GET] Error: ", error);
