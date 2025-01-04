@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NeteaseIcon } from "../icon/netease";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Loader } from "lucide-react";
 
 type TabType = "qrCode" | "password";
 
@@ -25,6 +26,7 @@ export const Netease = () => {
   const [password, setPassword] = useState("");
   const [qrImg, setQrImg] = useState("");
   const [currentTab, setCurrentTab] = useState<TabType>("qrCode");
+  const [getQRCodeLoading, setGetQRCodeLoading] = useState(false);
 
   // store the key for qr code
   const unikey = useRef(null);
@@ -52,6 +54,7 @@ export const Netease = () => {
 
   const getQRCode = async () => {
     try {
+      setGetQRCodeLoading(true);
       const keyRes = await fetch(`/api/netease/login/qr/key`, {
         method: "GET",
       });
@@ -66,6 +69,7 @@ export const Netease = () => {
       const { qrimg } = createData || {};
 
       setQrImg(qrimg);
+      setGetQRCodeLoading(false);
     } catch (error) {
       console.log("error", error);
     }
@@ -144,14 +148,34 @@ export const Netease = () => {
                     alt="Picture of the author"
                   />
                 </div>
-                <div className="flex items-center">
-                  <Image
-                    src={qrImg}
-                    width={200}
-                    height={200}
-                    alt="Picture of the author"
-                    className="rounded-md"
-                  />
+
+                <div className="flex items-center w-[200px] h-[200px] relative rounded-lg overflow-hidden">
+                  {getQRCodeLoading ? (
+                    <div className="w-full h-full flex items-center justify-center gap-4">
+                      <Loader className="animate-spin" />
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-4">
+                      <Image
+                        src={qrImg}
+                        width={200}
+                        height={200}
+                        alt="Picture of the author"
+                        className="rounded-md"
+                      />
+
+                      <div className="w-full h-full flex items-center justify-center gap-4 absolute bg-gray-300/80">
+                        <Button
+                          variant="outline"
+                          className=""
+                          onClick={() => {
+                            getQRCode();
+                          }}>
+                          Refresh
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </TabsContent>
