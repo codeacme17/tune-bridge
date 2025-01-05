@@ -18,7 +18,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apis } from "@/apis";
-import { useAccountStore } from "@/store";
 
 type NeteaseDialogProps = {
   isOpen: boolean;
@@ -47,11 +46,8 @@ export function NeteaseDialog({ isOpen, onOpenChange }: NeteaseDialogProps) {
 
   const unikey = useRef<string>("");
 
-  const { setNeteaseAccount } = useAccountStore();
-
   useEffect(() => {
     if (!isOpen) return;
-    getUserAccount();
 
     const hasLogin = localStorage.getItem("netease");
     if (hasLogin) {
@@ -117,22 +113,6 @@ export function NeteaseDialog({ isOpen, onOpenChange }: NeteaseDialogProps) {
       }
     } catch (error) {
       console.error("queryQrStatus error:", error);
-    }
-  }
-
-  async function getUserAccount() {
-    try {
-      const cookie = localStorage.getItem("netease-cookie");
-      if (!cookie) return;
-
-      const res = await apis.netease.getUserAccount(cookie);
-
-      console.log("res", res);
-
-      setNeteaseAccount(res);
-      console.log("getUserAccount res", res);
-    } catch (error) {
-      console.error("getUserAccount error:", error);
     }
   }
 

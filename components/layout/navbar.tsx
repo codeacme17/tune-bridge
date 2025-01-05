@@ -3,9 +3,11 @@
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { Sun, SunMoon } from "lucide-react";
+import { useHasMounted } from "@/hooks/use-has-mounted";
 
 export const Navbar = () => {
   const { theme, setTheme } = useTheme();
+  const { hasMounted } = useHasMounted();
 
   return (
     <nav className="flex justify-between py-2 px-4">
@@ -21,7 +23,11 @@ export const Navbar = () => {
           onClick={() => {
             setTheme(theme === "dark" ? "light" : "dark");
           }}>
-          {theme === "dark" ? <SunMoon size={34} /> : <Sun size={34} />}
+          {hasMounted && theme === "dark" ? (
+            <SunMoon size={34} />
+          ) : (
+            <Sun size={34} />
+          )}
         </Button>
       </div>
     </nav>
