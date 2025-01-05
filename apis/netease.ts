@@ -71,9 +71,12 @@ export const netease = {
 
   createQRCode: async () => {
     try {
-      const keyRes = await fetch(`${NETEASE_HOST}/login/qr/key`, {
-        method: "GET",
-      });
+      const keyRes = await fetch(
+        `${NETEASE_HOST}/login/qr/key?timestamp=${Date.now()}`,
+        {
+          method: "GET",
+        }
+      );
 
       if (!keyRes.ok)
         throw new Error(`[netease login GET] Error: ${keyRes.status}`);
