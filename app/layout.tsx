@@ -1,22 +1,13 @@
 import { Poppins } from "next/font/google";
 import { ThemeProvider } from "@/components/provider/theme-provider";
+import { Navbar } from "@/components/layout/navbar";
+import { Toaster } from "@/components/ui/toaster";
 import type { Metadata } from "next";
 import "./globals.css";
-import { Navbar } from "@/components/layout/navbar";
 
 const poppins = Poppins({
   subsets: ["latin-ext"],
-  weight: [
-    "100",
-    "200",
-    "300",
-    "400",
-    "500",
-    "600",
-    "700",
-    "800",
-    "900",
-  ],
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
   fallback: ["system-ui", "sans-serif"],
 });
 
@@ -32,8 +23,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${poppins} antialiased`}>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${poppins.className} antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -41,6 +32,8 @@ export default function RootLayout({
           disableTransitionOnChange>
           <Navbar />
           <main>{children}</main>
+
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>
