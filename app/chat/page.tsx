@@ -23,7 +23,7 @@ const Chat = () => {
         {/* Chat Container */}
         <ThemeProvider
           appearance={theme}
-          className="flex flex-col justify-between flex-1 pb-6">
+          className="flex flex-col justify-between">
           <ChatPrivew />
           <ChatArea />
         </ThemeProvider>

@@ -1,4 +1,4 @@
-import { ChatList } from "@lobehub/ui/chat";
+import { ActionsBar, ChatList } from "@lobehub/ui/chat";
 import { ChatMessage } from "@lobehub/ui/es/types";
 
 export const ChatPrivew = () => {
@@ -32,8 +32,21 @@ export const ChatPrivew = () => {
   ];
 
   return (
-    <section className="flex-1">
-      <ChatList data={data} style={{ width: "100%" }} />
+    <section
+      className="overflow-scroll py-3"
+      style={{
+        height: "calc(100vh - 320px)",
+      }}>
+      <ChatList
+        data={data}
+        renderActions={ActionsBar as any}
+        className="overflow-scroll h-full"
+        renderMessages={{
+          default: ({ id, editableContent }) => (
+            <div id={id}>{editableContent}</div>
+          ),
+        }}
+      />
     </section>
   );
 };

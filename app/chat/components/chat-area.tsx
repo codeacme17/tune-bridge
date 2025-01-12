@@ -9,7 +9,7 @@ import { Eraser, Languages } from "lucide-react";
 
 export const ChatArea = () => {
   return (
-    <section className="h-80 relative">
+    <section className="h-48 relative">
       <ChatInputArea
         bottomAddons={<ChatSendButton />}
         topAddons={

@@ -30,11 +30,8 @@ export default function RootLayout({
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange>
-          <main className="flex flex-col h-screen">
-            <Navbar />
-            <div className="flex-1">{children}</div>
-          </main>
-
+          <Navbar />
+          <main className="pt-16 overflow-scroll">{children}</main>
           <Toaster />
         </ThemeProvider>
       </body>
