@@ -30,8 +30,10 @@ export default function RootLayout({
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange>
-          <Navbar />
-          <main>{children}</main>
+          <main className="flex flex-col h-screen">
+            <Navbar />
+            <div className="flex-1">{children}</div>
+          </main>
 
           <Toaster />
         </ThemeProvider>
