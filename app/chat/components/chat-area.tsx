@@ -1,3 +1,4 @@
+import { useChat } from "@/hooks/use-chat";
 import { ActionIcon } from "@lobehub/ui";
 import {
   ChatInputActionBar,
@@ -6,12 +7,23 @@ import {
   TokenTag,
 } from "@lobehub/ui/chat";
 import { Eraser, Languages } from "lucide-react";
+import { useState } from "react";
 
 export const ChatArea = () => {
+  const [inputValue, setInputValue] = useState("");
+  const { sendMessage, loading } = useChat();
+
+  const handleSend = async () => {
+    if (!inputValue.trim()) return;
+    setInputValue("");
+    sendMessage(inputValue);
+  };
+
   return (
     <section className="h-48 relative">
       <ChatInputArea
-        bottomAddons={<ChatSendButton />}
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
         topAddons={
           <ChatInputActionBar
             leftAddons={
@@ -23,6 +35,7 @@ export const ChatArea = () => {
             }
           />
         }
+        bottomAddons={<ChatSendButton onSend={handleSend} loading={loading} />}
       />
     </section>
   );

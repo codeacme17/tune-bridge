@@ -14,7 +14,7 @@ const Chat = () => {
 
   return (
     <section className="flex justify-center h-full">
-      <div className="max-w-[800px] w-full h-full flex flex-col">
+      <div className="max-w-[800px] md:w-full h-full flex flex-col">
         <h1 className="text-2xl">Chat</h1>
         <h3 className="text-lg text-gray-500/80">
           you can chat there, to bridge your tune
