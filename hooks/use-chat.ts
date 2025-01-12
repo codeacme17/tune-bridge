@@ -7,14 +7,17 @@ import {
   AIMessage,
 } from "@langchain/core/messages";
 import { generate } from "shortid";
-import { useChatStore } from "@/store";
+import { IMessage, useChatStore } from "@/store";
 
 export const useChat = () => {
-  const { messages, setMessages } = useChatStore();
-
-  const [loading, setLoading] = useState(false);
+  const {
+    messages,
+    setMessages,
+    loading,
+    setLoading,
+    setMessagesWithStreaming,
+  } = useChatStore();
   const [error, setError] = useState<Error | null>(null);
-  const hasInit = useRef(false);
 
   const modelRef = useRef<ChatOpenAI<ChatOpenAICallOptions>>(null);
 
@@ -26,25 +29,21 @@ export const useChat = () => {
     const localData = localStorage.getItem("chat-messages");
     if (!localData) localStorage.setItem("chat-messages", JSON.stringify([]));
     else setMessages(JSON.parse(localData));
-
-    hasInit.current = true;
   }, []);
 
-  useEffect(() => {
-    if (!messages.length && !hasInit.current) return;
-    localStorage.setItem("chat-messages", JSON.stringify(messages));
-  }, [messages]);
-
   const sendMessage = async (message: string) => {
-    setMessages([
-      {
-        content: message,
-        role: "user",
-        id: `user-${generate()}`,
-        createAt: Date.now(),
-      },
-    ]);
-    await invoke(message);
+    const newMessage: IMessage = {
+      content: message,
+      role: "user",
+      id: `user-${generate()}`,
+      createAt: Date.now(),
+    };
+    setMessages([newMessage]);
+    localStorage.setItem(
+      "chat-messages",
+      JSON.stringify([...messages, newMessage])
+    );
+    invokeStream(message);
   };
 
   const invoke = async (message: string) => {
@@ -59,8 +58,6 @@ export const useChat = () => {
         }),
         new HumanMessage(message),
       ]);
-
-      console.log("[completed res]", res);
 
       setMessages([
         {
@@ -78,11 +75,55 @@ export const useChat = () => {
     }
   };
 
+  const invokeStream = async (message: string) => {
+    try {
+      if (!modelRef.current) throw new Error("model not initialized");
+
+      const { setMessages, setLoading, messages } = useChatStore.getState();
+
+      // 设置加载状态为 true
+      setLoading(true);
+
+      // 准备初始消息
+      const assistantMessage: IMessage = {
+        content: "",
+        role: "assistant",
+        id: `assistant-${generate()}`,
+        createAt: Date.now(),
+      };
+
+      setMessages([assistantMessage]);
+
+      const responseStream = await modelRef.current.stream([
+        new SystemMessage("You can ask me anything!"),
+        ...messages.map((m) => new HumanMessage(m.content)),
+        new HumanMessage(message),
+      ]);
+
+      for await (const chunk of responseStream) {
+        setMessagesWithStreaming(chunk.content, assistantMessage.id);
+        console.log(`${chunk.content}|`);
+      }
+
+      setLoading(false);
+      localStorage.setItem(
+        "chat-messages",
+        JSON.stringify([...messages, assistantMessage])
+      );
+      return assistantMessage.content;
+    } catch (error: any) {
+      const { setLoading } = useChatStore.getState();
+      setLoading(false);
+      console.error(error);
+    }
+  };
+
   return {
     messages,
     loading,
     error,
     sendMessage,
     invoke,
+    invokeStream,
   };
 };
