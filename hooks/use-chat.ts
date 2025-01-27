@@ -22,12 +22,13 @@ export const useChat = () => {
   const modelRef = useRef<ChatOpenAI<ChatOpenAICallOptions>>(null);
 
   useEffect(() => {
-    const { init } = llm();
+    const { init } = llm({ llm: "deepseek" });
     const model = init();
     modelRef.current = model;
 
     const localData = localStorage.getItem("chat-messages");
-    if (!localData) localStorage.setItem("chat-messages", JSON.stringify([]));
+    if (!localData)
+      localStorage.setItem("chat-messages", JSON.stringify([]));
     else setMessages(JSON.parse(localData));
   }, []);
 
@@ -79,7 +80,8 @@ export const useChat = () => {
     try {
       if (!modelRef.current) throw new Error("model not initialized");
 
-      const { setMessages, setLoading, messages } = useChatStore.getState();
+      const { setMessages, setLoading, messages } =
+        useChatStore.getState();
 
       // 设置加载状态为 true
       setLoading(true);
