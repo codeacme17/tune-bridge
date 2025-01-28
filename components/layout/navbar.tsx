@@ -10,7 +10,7 @@ export const Navbar = () => {
   const { hasMounted } = useHasMounted();
 
   return (
-    <nav className="flex justify-between py-2 px-4">
+    <nav className="flex justify-between py-2 px-4 fixed top-0 bg-white dark:bg-black w-screen z-10">
       <div className="items-center flex">
         <h1 className="text-xl font-light">Tune Bridge</h1>
       </div>

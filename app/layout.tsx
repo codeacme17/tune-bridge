@@ -31,8 +31,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange>
           <Navbar />
-          <main>{children}</main>
-
+          <main className="pt-16 overflow-scroll">{children}</main>
           <Toaster />
         </ThemeProvider>
       </body>
