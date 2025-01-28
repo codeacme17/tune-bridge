@@ -1,8 +1,30 @@
+"use client";
+
+import { useMemo } from "react";
 import { useChat } from "@/hooks/use-chat";
 import { IMessage } from "@/store";
 
+import Shiki from "@shikijs/markdown-it";
+import MarkdownIt from "markdown-it";
+import DOMPurify from "dompurify";
+
+const md = MarkdownIt().use(
+  await Shiki({
+    themes: {
+      light: "vitesse-light",
+      dark: "vitesse-dark",
+    },
+  })
+);
+
 const MessageItem = (props: IMessage) => {
   const { role, content } = props;
+
+  const renderContent = useMemo(() => {
+    if (!md) return content;
+    const rawHtml = md.render(content);
+    return DOMPurify.sanitize(rawHtml);
+  }, [content, md]);
 
   if (role === "assistant") {
     return (
@@ -12,7 +34,7 @@ const MessageItem = (props: IMessage) => {
           src="https://dummyimage.com/128x128/363536/ffffff&text=J"
         />
         <div className="flex rounded-b-xl rounded-tr-xl bg-slate-50 p-4 dark:bg-slate-800 sm:max-w-md md:max-w-2xl">
-          <p>{content}</p>
+          <p dangerouslySetInnerHTML={{ __html: renderContent }}></p>
         </div>
       </div>
     );
@@ -27,7 +49,7 @@ const MessageItem = (props: IMessage) => {
         />
 
         <div className="flex min-h-[85px] rounded-b-xl rounded-tl-xl bg-slate-50 p-4 dark:bg-slate-800 sm:min-h-0 sm:max-w-md md:max-w-2xl">
-          <p>{content}</p>
+          <p dangerouslySetInnerHTML={{ __html: renderContent }}></p>
         </div>
         <div className="mr-2 mt-1 flex flex-col-reverse gap-2 text-slate-500 sm:flex-row"></div>
       </div>
