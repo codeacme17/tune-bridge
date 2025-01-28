@@ -27,7 +27,5 @@ export const llm = (param: ILlmParams) => {
     }
   };
 
-  return {
-    init,
-  };
+  return { init };
 };

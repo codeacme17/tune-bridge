@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { ChatOpenAI, ChatOpenAICallOptions } from "@langchain/openai";
 import { llm } from "@/langchain/llm";
 import {
   HumanMessage,
@@ -19,7 +18,7 @@ export const useChat = () => {
   } = useChatStore();
   const [error, setError] = useState<Error | null>(null);
 
-  const modelRef = useRef<ChatOpenAI<ChatOpenAICallOptions>>(null);
+  const modelRef = useRef<any>(null);
 
   useEffect(() => {
     const { init } = llm({ llm: "deepseek" });
@@ -27,9 +26,11 @@ export const useChat = () => {
     modelRef.current = model;
 
     const localData = localStorage.getItem("chat-messages");
-    if (!localData)
+    if (!localData) {
       localStorage.setItem("chat-messages", JSON.stringify([]));
-    else setMessages(JSON.parse(localData));
+    } else {
+      setMessages(JSON.parse(localData));
+    }
   }, []);
 
   const sendMessage = async (message: string) => {

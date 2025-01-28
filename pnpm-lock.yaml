@@ -35,6 +35,9 @@ importers:
       '@radix-ui/react-toast':
         specifier: ^1.2.4
         version: 1.2.4(@types/react-dom@19.0.2(@types/react@19.0.4))(@types/react@19.0.4)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      '@types/lodash':
+        specifier: ^4.17.14
+        version: 4.17.14
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -47,6 +50,9 @@ importers:
       langchain:
         specifier: ^0.3.11
         version: 0.3.11(@langchain/core@0.3.29(openai@4.78.1(zod@3.24.1)))(axios@1.7.4)(openai@4.78.1(zod@3.24.1))
+      lodash:
+        specifier: ^4.17.21
+        version: 4.17.21
       lucide-react:
         specifier: ^0.469.0
         version: 0.469.0(react@19.0.0)
@@ -1652,6 +1658,9 @@ packages:
 
   '@types/katex@0.16.7':
     resolution: {integrity: sha512-HMwFiRujE5PjrgwHQ25+bsLJgowjGjm5Z8FVSf0N6PwgJrwxH0QxzHYDcKsTfV3wva0vzrpqMTJS2jXPr5BMEQ==}
+
+  '@types/lodash@4.17.14':
+    resolution: {integrity: sha512-jsxagdikDiDBeIRaPYtArcT8my4tN1og7MtMRquFT3XNA6axxyHDRUemqDz/taRDdOUn0GnGHRCuff4q48sW9A==}
 
   '@types/mdast@4.0.4':
     resolution: {integrity: sha512-kGaNbPh1k7AFzgpud/gMdvIm5xuECykRR+JnWKQno9TAXVa6WIVCGTPvYGekIDL4uwCZQSYbUxNBSb1aUo79oA==}
@@ -6373,6 +6382,8 @@ snapshots:
   '@types/json5@0.0.29': {}
 
   '@types/katex@0.16.7': {}
+
+  '@types/lodash@4.17.14': {}
 
   '@types/mdast@4.0.4':
     dependencies:

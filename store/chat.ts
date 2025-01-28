@@ -10,27 +10,54 @@ export interface IMessage {
 
 interface ChatStore {
   messages: IMessage[];
-  setMessages: (messages: IMessage[]) => void;
-  setMessagesWithStreaming: (chunk: MessageContent, id: string) => void;
+  /**
+   * Set a new message list, merge new messages and update the state
+   * @param newMessages New messages to be added
+   */
+  setMessages: (newMessages: IMessage[]) => void;
+  /**
+   * Set a new message content chunk to the target message
+   * @param chunk New message content chunk
+   * @param id Target message id
+   */
+  setMessagesWithStreaming: (
+    chunk: MessageContent,
+    id: string
+  ) => void;
   loading: boolean;
-  setLoading: (loading: any) => void;
+  /**
+   * Set the loading state
+   * @param loading Loading state
+   */
+  setLoading: (loading: boolean) => void;
 }
 
 export const useChatStore = create<ChatStore>((set) => ({
   messages: [],
   setMessages: (newMessages) => {
     set((state) => {
-      return { messages: [...state.messages, ...newMessages] };
+      const existingIds = new Set(
+        state.messages.map((msg) => msg.id)
+      );
+      const filteredMessages = newMessages.filter(
+        (msg) => !existingIds.has(msg.id)
+      );
+      return { messages: [...state.messages, ...filteredMessages] };
     });
   },
-  setMessagesWithStreaming: (chunk, id) =>
-    set((state) => ({
-      messages: state.messages.map((item) =>
-        item.id === id ? { ...item, content: item.content + chunk } : item
-      ),
-    })),
-  loading: false,
-  setLoading: (loading) => {
-    set({ loading });
+  setMessagesWithStreaming: (chunk, id) => {
+    if (typeof chunk !== "string") {
+      throw new Error("Chunk content must be a string");
+    }
+    set((state) => {
+      const updatedMessages = state.messages.map((message) =>
+        message.id === id
+          ? { ...message, content: message.content + chunk }
+          : message
+      );
+      return { messages: updatedMessages };
+    });
   },
+  loading: false,
+  setLoading: (loading) => set({ loading }),
 }));
