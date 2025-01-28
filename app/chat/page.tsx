@@ -1,6 +1,5 @@
 "use client";
 
-import { ThemeProvider } from "@lobehub/ui";
 import { ChatPrivew } from "./components/chat-preview";
 import { useTheme } from "next-themes";
 import { ChatArea } from "./components/chat-area";
@@ -21,12 +20,10 @@ const Chat = () => {
         </h3>
 
         {/* Chat Container */}
-        <ThemeProvider
-          appearance={theme}
-          className="flex flex-col justify-between">
+        <div className="flex flex-col justify-between">
           <ChatPrivew />
           <ChatArea />
-        </ThemeProvider>
+        </div>
       </div>
     </section>
   );

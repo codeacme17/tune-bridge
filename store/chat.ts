@@ -1,9 +1,7 @@
 import { MessageContent } from "@langchain/core/messages";
-import { ChatMessage } from "@lobehub/ui/es/types";
 import { create } from "zustand";
 
-export interface IMessage
-  extends Omit<ChatMessage, "createAt" | "updateAt"> {
+export interface IMessage {
   content: string;
   role: "user" | "assistant";
   id: string;
@@ -52,11 +50,12 @@ export const useChatStore = create<ChatStore>((set) => ({
       throw new Error("Chunk content must be a string");
     }
     set((state) => {
-      const updatedMessages = state.messages.map((message) =>
-        message.id === id
+      const updatedMessages = state.messages.map((message) => {
+        console.log("[message]", message.id === id, id);
+        return message.id === id
           ? { ...message, content: message.content + chunk }
-          : message
-      );
+          : message;
+      });
       return { messages: updatedMessages };
     });
   },
