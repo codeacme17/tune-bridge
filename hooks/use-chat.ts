@@ -104,8 +104,8 @@ export const useChat = () => {
       ]);
 
       for await (const chunk of responseStream) {
+        assistantMessage.content += chunk.content;
         setMessagesWithStreaming(chunk.content, assistantMessage.id);
-        console.log(`${chunk.content}|`);
       }
 
       setLoading(false);

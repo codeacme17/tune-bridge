@@ -117,15 +117,31 @@ export class DeepseekChatModel extends BaseChatModel {
       done = readerDone;
       const chunk = decoder.decode(value);
 
-      // Split the chunk into individual JSON objects
-      const parsedChunks = chunk
+      // Process each line of the chunk
+      const lines = chunk
         .split("\n")
-        .filter((line) => line.trim())
-        .map((line) => JSON.parse(line));
+        .filter(
+          (line) => line.trim() && line.trim() !== "data: [DONE]"
+        ) // Skip empty lines and [DONE]
+        .filter((line) => line.trim()) // Remove empty lines
+        .map((line) => {
+          if (line.startsWith("data: ")) {
+            try {
+              return JSON.parse(line.slice(6)); // Strip "data: " and parse JSON
+            } catch (e) {
+              console.error("Failed to parse chunk line:", line, e);
+              return null;
+            }
+          }
+          return null;
+        })
+        .filter((parsed) => parsed !== null); // Remove parsing errors
 
-      for (const parsed of parsedChunks) {
+      for (const parsed of lines) {
         if (parsed.choices) {
-          const content = parsed.choices[0]?.delta?.content;
+          const delta = parsed.choices[0]?.delta;
+          const content = delta?.content;
+
           if (content) {
             yield new ChatGenerationChunk({
               message: new AIMessageChunk({

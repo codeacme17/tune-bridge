@@ -55,6 +55,7 @@ export const useChatStore = create<ChatStore>((set) => ({
           ? { ...message, content: message.content + chunk }
           : message
       );
+      console.log("[updatedMessages]", updatedMessages);
       return { messages: updatedMessages };
     });
   },
