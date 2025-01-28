@@ -39,6 +39,12 @@ export const useChat = () => {
       role: "user",
       id: `user-${generate()}`,
       createAt: Date.now(),
+      meta: {
+        title: "CanisMinor",
+        avatar:
+          "https://avatars.githubusercontent.com/u/17870709?v=4",
+        backgroundColor: "#E8DA5A",
+      },
     };
     setMessages([newMessage]);
     localStorage.setItem(
@@ -67,6 +73,11 @@ export const useChat = () => {
           role: "assistant",
           id: res.id as string,
           createAt: Date.now(),
+          meta: {
+            title: "CanisMinor",
+            avatar: "😎",
+            backgroundColor: "#E8DA5A",
+          },
         },
       ]);
 
@@ -93,17 +104,28 @@ export const useChat = () => {
         role: "assistant",
         id: `assistant-${generate()}`,
         createAt: Date.now(),
+        meta: {
+          title: "CanisMinor",
+          avatar: "😎",
+          backgroundColor: "#E8DA5A",
+        },
       };
 
       setMessages([assistantMessage]);
 
       const responseStream = await modelRef.current.stream([
         new SystemMessage("You can ask me anything!"),
-        ...messages.map((m) => new HumanMessage(m.content)),
-        new HumanMessage(message),
+        ...messages
+          .splice(-5) // only last 5 messages
+          .map((m) => {
+            if (m.role === "user") return new HumanMessage(m.content);
+            else
+              return new AIMessage({ content: m.content, id: m.id });
+          }),
       ]);
 
       for await (const chunk of responseStream) {
+        console.log("[chunk]", chunk);
         assistantMessage.content += chunk.content;
         setMessagesWithStreaming(chunk.content, assistantMessage.id);
       }

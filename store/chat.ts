@@ -1,7 +1,9 @@
 import { MessageContent } from "@langchain/core/messages";
+import { ChatMessage } from "@lobehub/ui/es/types";
 import { create } from "zustand";
 
-export interface IMessage {
+export interface IMessage
+  extends Omit<ChatMessage, "createAt" | "updateAt"> {
   content: string;
   role: "user" | "assistant";
   id: string;
@@ -55,10 +57,10 @@ export const useChatStore = create<ChatStore>((set) => ({
           ? { ...message, content: message.content + chunk }
           : message
       );
-      console.log("[updatedMessages]", updatedMessages);
       return { messages: updatedMessages };
     });
   },
+
   loading: false,
   setLoading: (loading) => set({ loading }),
 }));
