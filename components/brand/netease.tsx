@@ -34,7 +34,8 @@ export const Netease = () => {
       <Button
         variant="outline"
         className="mt-10"
-        onClick={() => setIsDialogOpen(true)}>
+        onClick={() => setIsDialogOpen(true)}
+      >
         <NeteaseIcon className="fill-black dark:fill-white" />
         Netease
       </Button>

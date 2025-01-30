@@ -22,7 +22,8 @@ export const Navbar = () => {
           className="p-1"
           onClick={() => {
             setTheme(theme === "dark" ? "light" : "dark");
-          }}>
+          }}
+        >
           {hasMounted && theme === "dark" ? (
             <SunMoon size={34} />
           ) : (

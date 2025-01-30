@@ -20,10 +20,7 @@ interface ChatStore {
    * @param chunk New message content chunk
    * @param id Target message id
    */
-  setMessagesWithStreaming: (
-    chunk: MessageContent,
-    id: string
-  ) => void;
+  setMessagesWithStreaming: (chunk: MessageContent, id: string) => void;
   loading: boolean;
   /**
    * Set the loading state
@@ -36,9 +33,7 @@ export const useChatStore = create<ChatStore>((set) => ({
   messages: [],
   setMessages: (newMessages) => {
     set((state) => {
-      const existingIds = new Set(
-        state.messages.map((msg) => msg.id)
-      );
+      const existingIds = new Set(state.messages.map((msg) => msg.id));
       const filteredMessages = newMessages.filter(
         (msg) => !existingIds.has(msg.id)
       );
@@ -51,7 +46,6 @@ export const useChatStore = create<ChatStore>((set) => ({
     }
     set((state) => {
       const updatedMessages = state.messages.map((message) => {
-        console.log("[message]", message.id === id, id);
         return message.id === id
           ? { ...message, content: message.content + chunk }
           : message;

@@ -7,6 +7,7 @@ import {
 } from "@langchain/core/messages";
 import { generate } from "shortid";
 import { IMessage, useChatStore } from "@/store";
+import { LOCAL_STORAGE_KEY } from "@/lib/constants";
 
 export const useChat = () => {
   const {
@@ -25,9 +26,9 @@ export const useChat = () => {
     const model = init();
     modelRef.current = model;
 
-    const localData = localStorage.getItem("chat-messages");
+    const localData = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (!localData) {
-      localStorage.setItem("chat-messages", JSON.stringify([]));
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify([]));
     } else {
       setMessages(JSON.parse(localData));
     }
@@ -42,12 +43,13 @@ export const useChat = () => {
     };
     setMessages([newMessage]);
     localStorage.setItem(
-      "chat-messages",
+      LOCAL_STORAGE_KEY,
       JSON.stringify([...messages, newMessage])
     );
-    invokeStream(message);
+    await invokeStream();
   };
 
+  // invoke function to send message to the model
   const invoke = async (message: string) => {
     try {
       if (!modelRef.current) throw new Error("model not initialized");
@@ -77,17 +79,15 @@ export const useChat = () => {
     }
   };
 
-  const invokeStream = async (message: string) => {
+  // invokeStream function to send message to the model by streaming
+  const invokeStream = async () => {
     try {
       if (!modelRef.current) throw new Error("model not initialized");
 
-      const { setMessages, setLoading, messages } =
-        useChatStore.getState();
+      const { setMessages, setLoading, messages } = useChatStore.getState();
 
-      // 设置加载状态为 true
       setLoading(true);
 
-      // 准备初始消息
       const assistantMessage: IMessage = {
         content: "",
         role: "assistant",
@@ -97,28 +97,25 @@ export const useChat = () => {
 
       setMessages([assistantMessage]);
 
+      const tempMessages = [...messages];
       const responseStream = await modelRef.current.stream([
         new SystemMessage("You can ask me anything!"),
-        ...messages
+        ...tempMessages
           .splice(-5) // only last 5 messages
           .map((m) => {
             if (m.role === "user") return new HumanMessage(m.content);
-            else
-              return new AIMessage({ content: m.content, id: m.id });
+            else return new AIMessage({ content: m.content, id: m.id });
           }),
       ]);
 
       for await (const chunk of responseStream) {
-        console.log("[chunk]", chunk);
         assistantMessage.content += chunk.content;
         setMessagesWithStreaming(chunk.content, assistantMessage.id);
       }
 
       setLoading(false);
-      localStorage.setItem(
-        "chat-messages",
-        JSON.stringify([...messages, assistantMessage])
-      );
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(messages));
+
       return assistantMessage.content;
     } catch (error: any) {
       const { setLoading } = useChatStore.getState();

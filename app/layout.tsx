@@ -7,17 +7,7 @@ import "./globals.css";
 
 const poppins = Poppins({
   subsets: ["latin-ext"],
-  weight: [
-    "100",
-    "200",
-    "300",
-    "400",
-    "500",
-    "600",
-    "700",
-    "800",
-    "900",
-  ],
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
   fallback: ["system-ui", "sans-serif"],
 });
 
@@ -39,7 +29,8 @@ export default function RootLayout({
           attribute="class"
           defaultTheme="system"
           enableSystem
-          disableTransitionOnChange>
+          disableTransitionOnChange
+        >
           <Navbar />
           <main className="pt-16 overflow-scroll">{children}</main>
           <Toaster />

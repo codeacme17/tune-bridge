@@ -5,10 +5,7 @@ import {
   HumanMessage,
 } from "@langchain/core/messages";
 import { BaseChatModel } from "@langchain/core/language_models/chat_models";
-import {
-  ChatResult,
-  ChatGenerationChunk,
-} from "@langchain/core/outputs";
+import { ChatResult, ChatGenerationChunk } from "@langchain/core/outputs";
 
 interface CustomChatModelParams {
   apiUrl: string;
@@ -120,9 +117,7 @@ export class DeepseekChatModel extends BaseChatModel {
       // Process each line of the chunk
       const lines = chunk
         .split("\n")
-        .filter(
-          (line) => line.trim() && line.trim() !== "data: [DONE]"
-        ) // Skip empty lines and [DONE]
+        .filter((line) => line.trim() && line.trim() !== "data: [DONE]") // Skip empty lines and [DONE]
         .filter((line) => line.trim()) // Remove empty lines
         .map((line) => {
           if (line.startsWith("data: ")) {
