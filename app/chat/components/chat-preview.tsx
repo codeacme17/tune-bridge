@@ -21,6 +21,8 @@ const MessageItem = (props: IMessage) => {
   const { role, content } = props;
 
   const renderContent = useMemo(() => {
+    return content;
+
     if (!md) return content;
     const rawHtml = md.render(content);
     return DOMPurify.sanitize(rawHtml);
@@ -62,9 +64,10 @@ export const ChatPrivew = () => {
 
   return (
     <div
-      className="flex-1 space-y-6 overflow-y-auto rounded-xl p-4 text-sm leading-6 text-slate-900 shadow-sm overflow-scroll dark:text-slate-300 sm:text-base sm:leading-7"
+      className="flex-1 space-y-6 rounded-xl p-4 text-sm leading-6 text-slate-900 shadow-sm dark:text-slate-300 sm:text-base sm:leading-7"
       style={{
-        height: "calc(100vh - 320px)",
+        maxHeight: "calc(100vh - 320px)",
+        overflowY: "scroll",
       }}
     >
       {messages.map((message) => (

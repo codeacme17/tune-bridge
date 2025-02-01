@@ -101,6 +101,8 @@ export class DeepseekChatModel extends BaseChatModel {
       }),
     });
 
+    console.log("[streaming] start");
+
     if (!response.ok || !response.body) {
       throw new Error("Failed to connect to stream endpoint.");
     }
@@ -136,6 +138,8 @@ export class DeepseekChatModel extends BaseChatModel {
         if (parsed.choices) {
           const delta = parsed.choices[0]?.delta;
           const content = delta?.content;
+
+          console.log("Streaming chunk:", content);
 
           if (content) {
             yield new ChatGenerationChunk({

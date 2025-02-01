@@ -17,6 +17,7 @@ export const useChat = () => {
     setLoading,
     setMessagesWithStreaming,
   } = useChatStore();
+
   const [error, setError] = useState<Error | null>(null);
 
   const modelRef = useRef<any>(null);
@@ -53,7 +54,9 @@ export const useChat = () => {
   const invoke = async (message: string) => {
     try {
       if (!modelRef.current) throw new Error("model not initialized");
+
       setLoading(true);
+
       const res = await modelRef.current.invoke([
         new SystemMessage("You can ask me anything!"),
         ...messages.map((m) => {
@@ -109,13 +112,16 @@ export const useChat = () => {
       ]);
 
       for await (const chunk of responseStream) {
+        // console.log("[streaming]", chunk);
         assistantMessage.content += chunk.content;
         setMessagesWithStreaming(chunk.content, assistantMessage.id);
       }
 
       setLoading(false);
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(messages));
-
+      localStorage.setItem(
+        LOCAL_STORAGE_KEY,
+        JSON.stringify([...messages, assistantMessage])
+      );
       return assistantMessage.content;
     } catch (error: any) {
       const { setLoading } = useChatStore.getState();
