@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useChat } from "@/hooks/use-chat";
 import { IMessage } from "@/store";
 
@@ -10,8 +10,23 @@ import DOMPurify from "dompurify";
 
 interface MessageItemProps extends IMessage {}
 
+const md = MarkdownIt().use(
+  await Shiki({
+    themes: {
+      light: "vitesse-light",
+      dark: "vitesse-dark",
+    },
+  })
+);
+
 const MessageItem = (props: MessageItemProps) => {
   const { role, content } = props;
+
+  const renderContent = useMemo(() => {
+    const rawHtml = md.render(content);
+    return rawHtml;
+    // return DOMPurify.sanitize(rawHtml);
+  }, [content]);
 
   if (role === "assistant") {
     return (
@@ -22,7 +37,7 @@ const MessageItem = (props: MessageItemProps) => {
         />
         <div className="flex rounded-b-xl rounded-tr-xl bg-slate-50 p-4 dark:bg-slate-800 sm:max-w-md md:max-w-2xl">
           <div
-            dangerouslySetInnerHTML={{ __html: content }}
+            dangerouslySetInnerHTML={{ __html: renderContent }}
             className="w-full overflow-clip"
           ></div>
         </div>
@@ -39,7 +54,7 @@ const MessageItem = (props: MessageItemProps) => {
         />
 
         <div className="flex min-h-[85px] rounded-b-xl rounded-tl-xl bg-slate-50 p-4 dark:bg-slate-800 sm:min-h-0 sm:max-w-md md:max-w-2xl">
-          <div dangerouslySetInnerHTML={{ __html: content }}></div>
+          <div dangerouslySetInnerHTML={{ __html: renderContent }}></div>
         </div>
         <div className="mr-2 mt-1 flex flex-col-reverse gap-2 text-slate-500 sm:flex-row"></div>
       </div>
@@ -63,12 +78,6 @@ export const ChatPrivew = () => {
     }
   }, []);
 
-  const renderContent = (content: string) => {
-    if (!markdownItRef.current) return content;
-    const rawHtml = markdownItRef.current.render(content);
-    return DOMPurify.sanitize(rawHtml);
-  };
-
   return (
     <div
       className="flex-1 space-y-6 rounded-xl p-4 text-sm leading-6 text-slate-900 shadow-sm dark:text-slate-300 sm:text-base sm:leading-7"
@@ -78,11 +87,7 @@ export const ChatPrivew = () => {
       }}
     >
       {messages.map((message) => (
-        <MessageItem
-          key={message.id}
-          {...message}
-          content={renderContent(message.content)}
-        />
+        <MessageItem key={message.id} {...message} />
       ))}
     </div>
   );
