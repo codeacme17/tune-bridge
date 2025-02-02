@@ -82,6 +82,7 @@ html.dark .shiki span {
 
 pre {
   padding: 10px;
-  overflow-y: scroll;
+  margin: 10px 0px;
   overflow-x: scroll;
+  border-radius: 10px;
 }
