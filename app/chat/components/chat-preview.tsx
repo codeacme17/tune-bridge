@@ -80,6 +80,7 @@ export const ChatPrivew = () => {
 
   return (
     <div
+      id="chat-preview"
       className="flex-1 space-y-6 rounded-xl p-4 text-sm leading-6 text-slate-900 shadow-sm dark:text-slate-300 sm:text-base sm:leading-7"
       style={{
         maxHeight: "calc(100vh - 320px)",

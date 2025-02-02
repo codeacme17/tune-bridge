@@ -8,6 +8,7 @@ import {
 import { generate } from "shortid";
 import { IMessage, useChatStore } from "@/store";
 import { LOCAL_STORAGE_KEY } from "@/lib/constants";
+import { useScroll } from "./use-scroll";
 
 export const useChat = () => {
   const {
@@ -19,6 +20,10 @@ export const useChat = () => {
   } = useChatStore();
 
   const [error, setError] = useState<Error | null>(null);
+
+  const { scrollToBottom } = useScroll({
+    element: document.getElementById("chat-preview") as HTMLElement,
+  });
 
   const modelRef = useRef<any>(null);
 
@@ -43,6 +48,8 @@ export const useChat = () => {
       createAt: Date.now(),
     };
     setMessages([newMessage]);
+
+    scrollToBottom();
     localStorage.setItem(
       LOCAL_STORAGE_KEY,
       JSON.stringify([...messages, newMessage])
@@ -86,7 +93,6 @@ export const useChat = () => {
   const invokeStream = async () => {
     try {
       if (!modelRef.current) throw new Error("model not initialized");
-
       const { setMessages, setLoading, messages } = useChatStore.getState();
 
       setLoading(true);
@@ -115,6 +121,7 @@ export const useChat = () => {
         // console.log("[streaming]", chunk);
         assistantMessage.content += chunk.content;
         setMessagesWithStreaming(chunk.content, assistantMessage.id);
+        scrollToBottom();
       }
 
       setLoading(false);
@@ -122,6 +129,8 @@ export const useChat = () => {
         LOCAL_STORAGE_KEY,
         JSON.stringify([...messages, assistantMessage])
       );
+
+      scrollToBottom();
       return assistantMessage.content;
     } catch (error: any) {
       const { setLoading } = useChatStore.getState();
