@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useChat } from "@/hooks/use-chat";
 import { IMessage } from "@/store";
 
@@ -8,25 +8,10 @@ import Shiki from "@shikijs/markdown-it";
 import MarkdownIt from "markdown-it";
 import DOMPurify from "dompurify";
 
-const md = MarkdownIt().use(
-  await Shiki({
-    themes: {
-      light: "vitesse-light",
-      dark: "vitesse-dark",
-    },
-  })
-);
+interface MessageItemProps extends IMessage {}
 
-const MessageItem = (props: IMessage) => {
+const MessageItem = (props: MessageItemProps) => {
   const { role, content } = props;
-
-  const renderContent = useMemo(() => {
-    return content;
-
-    if (!md) return content;
-    const rawHtml = md.render(content);
-    return DOMPurify.sanitize(rawHtml);
-  }, [content, md]);
 
   if (role === "assistant") {
     return (
@@ -36,7 +21,10 @@ const MessageItem = (props: IMessage) => {
           src="https://dummyimage.com/128x128/363536/ffffff&text=J"
         />
         <div className="flex rounded-b-xl rounded-tr-xl bg-slate-50 p-4 dark:bg-slate-800 sm:max-w-md md:max-w-2xl">
-          <p dangerouslySetInnerHTML={{ __html: renderContent }}></p>
+          <div
+            dangerouslySetInnerHTML={{ __html: content }}
+            className="w-full overflow-clip"
+          ></div>
         </div>
       </div>
     );
@@ -51,7 +39,7 @@ const MessageItem = (props: IMessage) => {
         />
 
         <div className="flex min-h-[85px] rounded-b-xl rounded-tl-xl bg-slate-50 p-4 dark:bg-slate-800 sm:min-h-0 sm:max-w-md md:max-w-2xl">
-          <p dangerouslySetInnerHTML={{ __html: renderContent }}></p>
+          <div dangerouslySetInnerHTML={{ __html: content }}></div>
         </div>
         <div className="mr-2 mt-1 flex flex-col-reverse gap-2 text-slate-500 sm:flex-row"></div>
       </div>
@@ -61,6 +49,25 @@ const MessageItem = (props: IMessage) => {
 
 export const ChatPrivew = () => {
   const { messages } = useChat();
+  const markdownItRef = useRef<MarkdownIt | null>(null);
+
+  useEffect(() => {
+    const initMarkdown = async () => {
+      const MarkdownIt = (await import("markdown-it")).default;
+      const md = MarkdownIt();
+      markdownItRef.current = md;
+    };
+
+    if (!markdownItRef.current) {
+      initMarkdown();
+    }
+  }, []);
+
+  const renderContent = (content: string) => {
+    if (!markdownItRef.current) return content;
+    const rawHtml = markdownItRef.current.render(content);
+    return DOMPurify.sanitize(rawHtml);
+  };
 
   return (
     <div
@@ -71,7 +78,11 @@ export const ChatPrivew = () => {
       }}
     >
       {messages.map((message) => (
-        <MessageItem key={message.id} {...message} />
+        <MessageItem
+          key={message.id}
+          {...message}
+          content={renderContent(message.content)}
+        />
       ))}
     </div>
   );

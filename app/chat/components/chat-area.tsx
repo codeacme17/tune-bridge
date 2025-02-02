@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useChat } from "@/hooks/use-chat";
-import { SendIcon, LinkIcon, LoaderCircleIcon } from "lucide-react";
+import { SendIcon, LoaderCircleIcon } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
