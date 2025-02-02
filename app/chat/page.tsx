@@ -1,9 +1,16 @@
 "use client";
 
-import { ChatPrivew } from "./components/chat-preview";
 import { useTheme } from "next-themes";
 import { ChatArea } from "./components/chat-area";
 import { useHasMounted } from "@/hooks/use-has-mounted";
+import dynamic from "next/dynamic";
+
+const ChatPrivew = dynamic(
+  () => import("./components/chat-preview").then((mod) => mod.ChatPrivew),
+  {
+    ssr: false,
+  }
+);
 
 const Chat = () => {
   const { theme } = useTheme();

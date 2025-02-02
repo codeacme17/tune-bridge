@@ -1,3 +1,46 @@
-import { config } from "dotenv";
-import { ChatOpenAI } from "@langchain/openai";
-import { HumanMessage, SystemMessage } from "@langchain/core/messages";
+import { ChatPromptTemplate } from "@langchain/core/prompts";
+import { ILlmParams, llm } from "./llm";
+import { multiply } from "./tool";
+import { createToolCallingAgent } from "langchain/agents";
+import { AgentExecutor } from "langchain/agents";
+
+interface AgentParams {
+  llmParams: ILlmParams;
+}
+
+export const agent = (params: AgentParams) => {
+  const { llmParams } = params;
+
+  const init = () => {
+    try {
+      const model = llm(llmParams).init();
+
+      // if (!model) throw new Error("model not initialized");
+      // const modelWithTools = model.bindTools([multiply]);
+      // return modelWithTools;
+
+      const prompt = ChatPromptTemplate.fromMessages([
+        ["system", "You are a helpful assistant"],
+        ["placeholder", "{chat_history}"],
+        ["human", "{input}"],
+        ["placeholder", "{agent_scratchpad}"],
+      ]);
+
+      const agent = createToolCallingAgent({
+        llm: model,
+        tools: [multiply],
+        prompt,
+      });
+      const agentExecutor = new AgentExecutor({
+        agent,
+        tools: [multiply],
+      });
+
+      return agentExecutor;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  return { init };
+};

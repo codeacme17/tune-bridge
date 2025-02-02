@@ -9,6 +9,8 @@ import { generate } from "shortid";
 import { IMessage, useChatStore } from "@/store";
 import { LOCAL_STORAGE_KEY } from "@/lib/constants";
 import { useScroll } from "./use-scroll";
+import { agent } from "@/langchain/agent";
+import { useToast } from "./use-toast";
 
 export const useChat = () => {
   const {
@@ -20,6 +22,8 @@ export const useChat = () => {
   } = useChatStore();
 
   const [error, setError] = useState<Error | null>(null);
+
+  const { toast } = useToast();
 
   const { scrollToBottom } = useScroll({
     element: document.getElementById("chat-preview") as HTMLElement,
@@ -41,35 +45,56 @@ export const useChat = () => {
   }, []);
 
   const sendMessage = async (message: string) => {
-    const newMessage: IMessage = {
-      content: message,
-      role: "user",
-      id: `user-${generate()}`,
-      createAt: Date.now(),
-    };
-    setMessages([newMessage]);
+    try {
+      const newMessage: IMessage = {
+        content: message,
+        role: "user",
+        id: `user-${generate()}`,
+        createAt: Date.now(),
+      };
 
-    scrollToBottom();
-    localStorage.setItem(
-      LOCAL_STORAGE_KEY,
-      JSON.stringify([...messages, newMessage])
-    );
-    await invokeStream();
+      setMessages([newMessage]);
+
+      scrollToBottom();
+
+      localStorage.setItem(
+        LOCAL_STORAGE_KEY,
+        JSON.stringify([...messages, newMessage])
+      );
+      await invoke(message);
+    } catch (error: any) {
+      setError(error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error,
+      });
+    }
   };
 
   // invoke function to send message to the model
   const invoke = async (message: string) => {
     try {
       if (!modelRef.current) throw new Error("model not initialized");
+      const modelWithTool = agent({
+        llmParams: { llm: "deepseek", streaming: false },
+      }).init();
+      const model = llm({
+        llm: "deepseek",
+        streaming: false,
+      }).init();
 
       setLoading(true);
 
-      const res = await modelRef.current.invoke([
+      const tempMessages = [...messages];
+      const res = await modelWithTool.invoke([
         new SystemMessage("You can ask me anything!"),
-        ...messages.map((m) => {
-          if (m.role === "user") return new HumanMessage(m.content);
-          else return new AIMessage({ content: m.content, id: m.id });
-        }),
+        ...tempMessages
+          .splice(-5) // only last 5 messages
+          .map((m) => {
+            if (m.role === "user") return new HumanMessage(m.content);
+            else return new AIMessage({ content: m.content, id: m.id });
+          }),
         new HumanMessage(message),
       ]);
 
