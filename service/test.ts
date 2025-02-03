@@ -2,17 +2,18 @@ import { useToast } from "@/hooks/use-toast";
 
 export const testDialog = (content: string) => {
   try {
-    // const { toast } = useToast();
+    const { toast } = useToast();
 
-    // toast({
-    //   title: content,
-    //   description: "Friday, February 10, 2023 at 5:57 PM",
-    // });
+    toast({
+      title: content,
+      description: "Friday, February 10, 2023 at 5:57 PM",
+    });
 
     console.log("content", content);
     alert(content);
-    return "testDialog";
+    return `success ${content}`;
   } catch (error) {
     console.error(error);
+    return `error ${error}`;
   }
 };

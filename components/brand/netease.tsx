@@ -19,6 +19,7 @@ export const Netease = () => {
 
       const res = await apis.netease.getUserAccount(cookie);
       const { profile } = res || {};
+      console.log("[profile]", profile);
       setNeteaseAccount(profile);
     } catch (error) {
       console.error("getUserAccount error:", error);

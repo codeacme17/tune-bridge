@@ -1,3 +1,4 @@
+import { KEYS } from "@/lib/constants";
 import { ChatOpenAI } from "@langchain/openai";
 
 export type TLlm = "openai" | "deepseek";
@@ -7,9 +8,6 @@ export interface ILlmParams {
   streaming?: boolean;
 }
 
-const OPENAI_API_KEY = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
-const DEEPSEEK_API_KEY = process.env.NEXT_PUBLIC_DEEPSEEK_API_KEY;
-
 export const llm = (param: ILlmParams) => {
   const { streaming = false } = param;
 
@@ -17,7 +15,7 @@ export const llm = (param: ILlmParams) => {
     switch (param.llm) {
       case "openai":
         return new ChatOpenAI({
-          apiKey: OPENAI_API_KEY,
+          apiKey: KEYS.OPENAI_API_KEY,
           model: "gpt-4o-mini",
           streaming,
         });
@@ -25,7 +23,7 @@ export const llm = (param: ILlmParams) => {
       case "deepseek":
         return new ChatOpenAI(
           {
-            apiKey: DEEPSEEK_API_KEY,
+            apiKey: KEYS.DEEPSEEK_API_KEY,
             model: "deepseek-chat",
             streaming,
           },
