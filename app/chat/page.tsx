@@ -1,13 +1,10 @@
 "use client";
 
-import { ThemeProvider } from "@lobehub/ui";
-import { ChatPrivew } from "./components/chat-preview";
-import { useTheme } from "next-themes";
 import { ChatArea } from "./components/chat-area";
 import { useHasMounted } from "@/hooks/use-has-mounted";
+import { ChatPrivew } from "./components/chat-preview";
 
 const Chat = () => {
-  const { theme } = useTheme();
   const { hasMounted } = useHasMounted();
 
   if (!hasMounted) return null;
@@ -21,12 +18,10 @@ const Chat = () => {
         </h3>
 
         {/* Chat Container */}
-        <ThemeProvider
-          appearance={theme}
-          className="flex flex-col justify-between">
+        <div className="flex flex-col flex-1">
           <ChatPrivew />
           <ChatArea />
-        </ThemeProvider>
+        </div>
       </div>
     </section>
   );

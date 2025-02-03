@@ -1,5 +1,5 @@
-import { MessageContent } from "@langchain/core/messages";
 import { create } from "zustand";
+import { MessageContent } from "@langchain/core/messages";
 
 export interface IMessage {
   content: string;
@@ -20,10 +20,7 @@ interface ChatStore {
    * @param chunk New message content chunk
    * @param id Target message id
    */
-  setMessagesWithStreaming: (
-    chunk: MessageContent,
-    id: string
-  ) => void;
+  setMessagesWithStreaming: (chunk: MessageContent, id: string) => void;
   loading: boolean;
   /**
    * Set the loading state
@@ -36,9 +33,7 @@ export const useChatStore = create<ChatStore>((set) => ({
   messages: [],
   setMessages: (newMessages) => {
     set((state) => {
-      const existingIds = new Set(
-        state.messages.map((msg) => msg.id)
-      );
+      const existingIds = new Set(state.messages.map((msg) => msg.id));
       const filteredMessages = newMessages.filter(
         (msg) => !existingIds.has(msg.id)
       );
@@ -50,14 +45,15 @@ export const useChatStore = create<ChatStore>((set) => ({
       throw new Error("Chunk content must be a string");
     }
     set((state) => {
-      const updatedMessages = state.messages.map((message) =>
-        message.id === id
+      const updatedMessages = state.messages.map((message) => {
+        return message.id === id
           ? { ...message, content: message.content + chunk }
-          : message
-      );
+          : message;
+      });
       return { messages: updatedMessages };
     });
   },
+
   loading: false,
   setLoading: (loading) => set({ loading }),
 }));

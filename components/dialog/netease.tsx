@@ -151,7 +151,8 @@ export function NeteaseDialog({ isOpen, onOpenChange }: NeteaseDialogProps) {
             defaultValue="qrCode"
             className="w-[400px]"
             value={currentTab}
-            onValueChange={(value) => setCurrentTab(value as TabType)}>
+            onValueChange={(value) => setCurrentTab(value as TabType)}
+          >
             <TabsList>
               <TabsTrigger value="qrCode">Scan</TabsTrigger>
               <TabsTrigger value="password">Password</TabsTrigger>

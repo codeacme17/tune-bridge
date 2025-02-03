@@ -29,9 +29,10 @@ export default function RootLayout({
           attribute="class"
           defaultTheme="system"
           enableSystem
-          disableTransitionOnChange>
+          disableTransitionOnChange
+        >
           <Navbar />
-          <main className="pt-16 overflow-scroll">{children}</main>
+          <main className="pt-16 h-screen">{children}</main>
           <Toaster />
         </ThemeProvider>
       </body>
