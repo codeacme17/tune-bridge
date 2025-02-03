@@ -1,6 +1,6 @@
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { ILlmParams, llm } from "./llm";
-import { multiply } from "./tool";
+import { multiply, tools } from "./tool";
 import { createToolCallingAgent } from "langchain/agents";
 import { AgentExecutor } from "langchain/agents";
 
@@ -24,13 +24,13 @@ export const agent = (params: AgentParams) => {
 
       const agent = createToolCallingAgent({
         llm: model,
-        tools: [multiply],
+        tools,
         prompt,
       });
 
       const agentExecutor = new AgentExecutor({
         agent,
-        tools: [multiply],
+        tools,
       });
 
       return agentExecutor;

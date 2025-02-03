@@ -1,5 +1,6 @@
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
+import { spotifyTools } from "./spotify";
 
 export const multiply = tool(
   ({ a, b }: { a: number; b: number }): string => {
@@ -14,3 +15,5 @@ export const multiply = tool(
     }),
   }
 );
+
+export const tools = [...spotifyTools, multiply];

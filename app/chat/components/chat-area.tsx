@@ -8,8 +8,10 @@ import { Button } from "@/components/ui/button";
 
 export const ChatArea = () => {
   const [inputValue, setInputValue] = useState("");
-  const { sendMessage, loading } = useChat();
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const { sendMessage, loading } = useChat();
 
   useEffect(() => {
     if (!textareaRef.current) return;
