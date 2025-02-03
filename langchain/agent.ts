@@ -1,6 +1,6 @@
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { ILlmParams, llm } from "./llm";
-import { multiply, tools } from "./tool";
+import { tools } from "./tool";
 import { createToolCallingAgent } from "langchain/agents";
 import { AgentExecutor } from "langchain/agents";
 
