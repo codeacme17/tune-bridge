@@ -15,10 +15,6 @@ export const agent = (params: AgentParams) => {
     try {
       const model = llm(llmParams).init();
 
-      // if (!model) throw new Error("model not initialized");
-      // const modelWithTools = model.bindTools([multiply]);
-      // return modelWithTools;
-
       const prompt = ChatPromptTemplate.fromMessages([
         ["system", "You are a helpful assistant"],
         ["placeholder", "{chat_history}"],
@@ -31,6 +27,7 @@ export const agent = (params: AgentParams) => {
         tools: [multiply],
         prompt,
       });
+
       const agentExecutor = new AgentExecutor({
         agent,
         tools: [multiply],
@@ -38,6 +35,7 @@ export const agent = (params: AgentParams) => {
 
       return agentExecutor;
     } catch (error) {
+      console.error("agent init error ===>", error);
       throw error;
     }
   };

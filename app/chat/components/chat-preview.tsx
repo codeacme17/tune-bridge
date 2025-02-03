@@ -6,7 +6,6 @@ import { IMessage } from "@/store";
 
 import Shiki from "@shikijs/markdown-it";
 import MarkdownIt from "markdown-it";
-import DOMPurify from "dompurify";
 
 interface MessageItemProps extends IMessage {}
 
@@ -20,7 +19,7 @@ const md = MarkdownIt().use(
 );
 
 const MessageItem = (props: MessageItemProps) => {
-  const { role, content } = props;
+  const { role, content = "" } = props;
 
   const renderContent = useMemo(() => {
     const rawHtml = md.render(content);
@@ -81,9 +80,9 @@ export const ChatPrivew = () => {
   return (
     <div
       id="chat-preview"
-      className="flex-1 space-y-6 rounded-xl p-4 text-sm leading-6 text-slate-900 shadow-sm dark:text-slate-300 sm:text-base sm:leading-7"
+      className="rounded-xl p-4 text-sm leading-6 text-slate-900 shadow-sm dark:text-slate-300 sm:text-base sm:leading-7"
       style={{
-        maxHeight: "calc(100vh - 320px)",
+        height: "calc(-350px + 100vh)",
         overflowY: "scroll",
       }}
     >

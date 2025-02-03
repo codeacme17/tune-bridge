@@ -7,10 +7,11 @@ import {
 } from "@langchain/core/messages";
 import { generate } from "shortid";
 import { IMessage, useChatStore } from "@/store";
+import { agent } from "@/langchain/agent";
 import { LOCAL_STORAGE_KEY } from "@/lib/constants";
 import { useScroll } from "./use-scroll";
-import { agent } from "@/langchain/agent";
 import { useToast } from "./use-toast";
+import { cloneDeep } from "lodash";
 
 export const useChat = () => {
   const {
@@ -29,12 +30,13 @@ export const useChat = () => {
     element: document.getElementById("chat-preview") as HTMLElement,
   });
 
-  const modelRef = useRef<any>(null);
+  const agentRef = useRef<any>(null);
 
   useEffect(() => {
-    const { init } = llm({ llm: "deepseek" });
-    const model = init();
-    modelRef.current = model;
+    const { init } = agent({
+      llmParams: { llm: "openai", streaming: false },
+    });
+    agentRef.current = init();
 
     const localData = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (!localData) {
@@ -46,6 +48,8 @@ export const useChat = () => {
 
   const sendMessage = async (message: string) => {
     try {
+      setLoading(true);
+
       const newMessage: IMessage = {
         content: message,
         role: "user",
@@ -61,7 +65,9 @@ export const useChat = () => {
         LOCAL_STORAGE_KEY,
         JSON.stringify([...messages, newMessage])
       );
-      await invoke(message);
+
+      await invokeAgent(message);
+      setLoading(false);
     } catch (error: any) {
       setError(error);
       toast({
@@ -74,29 +80,25 @@ export const useChat = () => {
 
   // invoke function to send message to the model
   const invoke = async (message: string) => {
+    setLoading(true);
+
     try {
-      if (!modelRef.current) throw new Error("model not initialized");
-      const modelWithTool = agent({
-        llmParams: { llm: "deepseek", streaming: false },
-      }).init();
-      const model = llm({
-        llm: "deepseek",
-        streaming: false,
-      }).init();
+      if (!agentRef.current) throw new Error("model not initialized");
 
-      setLoading(true);
+      const chatHistory = [...messages]
+        .splice(-5) // only last 5 messages
+        .map((m) => {
+          if (m.role === "user") return new HumanMessage(m.content);
+          else return new AIMessage({ content: m.content, id: m.id });
+        });
 
-      const tempMessages = [...messages];
-      const res = await modelWithTool.invoke([
-        new SystemMessage("You can ask me anything!"),
-        ...tempMessages
-          .splice(-5) // only last 5 messages
-          .map((m) => {
-            if (m.role === "user") return new HumanMessage(m.content);
-            else return new AIMessage({ content: m.content, id: m.id });
-          }),
-        new HumanMessage(message),
-      ]);
+      const res = await agentRef.current.invoke({
+        chat_history: chatHistory,
+        input: message,
+        agent_scratchpad: "",
+      });
+
+      console.log("[res]", res);
 
       setMessages([
         {
@@ -107,20 +109,20 @@ export const useChat = () => {
         },
       ]);
 
-      setLoading(false);
       return res.content;
     } catch (error: any) {
+      console.error("invoke error ===>", error);
       setError(error);
     }
+
+    setLoading(false);
   };
 
   // invokeStream function to send message to the model by streaming
   const invokeStream = async () => {
     try {
-      if (!modelRef.current) throw new Error("model not initialized");
+      if (!agentRef.current) throw new Error("model not initialized");
       const { setMessages, setLoading, messages } = useChatStore.getState();
-
-      setLoading(true);
 
       const assistantMessage: IMessage = {
         content: "",
@@ -132,7 +134,7 @@ export const useChat = () => {
       setMessages([assistantMessage]);
 
       const tempMessages = [...messages];
-      const responseStream = await modelRef.current.stream([
+      const responseStream = await agentRef.current.stream([
         new SystemMessage("You can ask me anything!"),
         ...tempMessages
           .splice(-5) // only last 5 messages
@@ -158,9 +160,52 @@ export const useChat = () => {
       scrollToBottom();
       return assistantMessage.content;
     } catch (error: any) {
-      const { setLoading } = useChatStore.getState();
-      setLoading(false);
       console.error(error);
+    }
+  };
+
+  // invokeAgent function to send message to the model
+  const invokeAgent = async (message: string) => {
+    setLoading(true);
+
+    try {
+      if (!agentRef.current) throw new Error("model not initialized");
+
+      const assistantMessage: IMessage = {
+        content: "",
+        role: "assistant",
+        id: `assistant-${generate()}`,
+        createAt: Date.now(),
+      };
+
+      const chatHistory = cloneDeep(messages)
+        .splice(-5) // only last 5 messages
+        .map((m) => {
+          if (m.role === "user") return new HumanMessage(m.content);
+          else return new AIMessage({ content: m.content, id: m.id });
+        });
+
+      const res = await agentRef.current.invoke({
+        chat_history: chatHistory,
+        input: message,
+        agent_scratchpad: "",
+      });
+
+      assistantMessage.content = res.output;
+
+      localStorage.setItem(
+        LOCAL_STORAGE_KEY,
+        JSON.stringify([...messages, assistantMessage])
+      );
+
+      setMessages([assistantMessage]);
+
+      scrollToBottom();
+
+      return assistantMessage.content;
+    } catch (error: any) {
+      console.error("invoke error ===>", error);
+      setError(error);
     }
   };
 
@@ -169,7 +214,5 @@ export const useChat = () => {
     loading,
     error,
     sendMessage,
-    invoke,
-    invokeStream,
   };
 };

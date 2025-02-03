@@ -8,7 +8,7 @@ export interface ILlmParams {
 }
 
 export const llm = (param: ILlmParams) => {
-  const { streaming } = param;
+  const { streaming = false } = param;
 
   const init = () => {
     switch (param.llm) {
