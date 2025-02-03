@@ -1,4 +1,6 @@
-import { useState } from "react";
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import { useChat } from "@/hooks/use-chat";
 import { SendIcon, LoaderCircleIcon } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
@@ -7,6 +9,12 @@ import { Button } from "@/components/ui/button";
 export const ChatArea = () => {
   const [inputValue, setInputValue] = useState("");
   const { sendMessage, loading } = useChat();
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (!textareaRef.current) return;
+    textareaRef.current.focus();
+  }, [textareaRef.current]);
 
   const handleSend = async () => {
     if (!inputValue.trim()) return;
@@ -20,10 +28,10 @@ export const ChatArea = () => {
         <div className="rounded-lg rounded-b-none">
           <Textarea
             id="prompt-input"
+            ref={textareaRef}
             rows={4}
             placeholder="Enter your prompt"
             required
-            className="border-0 outline-0"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             style={{ resize: "none" }}
