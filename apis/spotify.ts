@@ -1,6 +1,39 @@
-import { KEYS } from "@/lib/constants";
+import { KEYS, REDIRECT_URI } from "@/lib/constants";
 
 export const spotify = {
+  async fetchAccessToken(authCode: string) {
+    const codeVerifier = localStorage.getItem("spotify_code_verifier");
+    if (!codeVerifier) {
+      throw new Error("Missing code_verifier");
+    }
+
+    const res = await fetch("https://accounts.spotify.com/api/token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        client_id: KEYS.SPOTIFY_CLIENT_ID as string,
+        grant_type: "authorization_code",
+        code: authCode,
+        redirect_uri: REDIRECT_URI,
+        code_verifier: codeVerifier,
+      }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(
+        `Spotify API Error: ${res.status} - ${JSON.stringify(data)}`
+      );
+    }
+
+    localStorage.setItem("spotify_access_token", data.access_token);
+    localStorage.setItem("spotify_refresh_token", data.refresh_token);
+
+    return data;
+  },
+
   async authorize() {
     try {
       const res = await fetch("https://accounts.spotify.com/api/token", {

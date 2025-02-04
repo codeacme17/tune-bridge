@@ -6,3 +6,5 @@ export const KEYS = {
   OPENAI_API_KEY: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
   DEEPSEEK_API_KEY: process.env.NEXT_PUBLIC_DEEPSEEK_API_KEY,
 };
+
+export const REDIRECT_URI = "http://localhost:7934/redirect";

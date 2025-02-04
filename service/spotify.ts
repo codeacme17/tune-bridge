@@ -1,5 +1,6 @@
 import { apis } from "@/apis";
-import { KEYS } from "@/lib/constants";
+import { KEYS, REDIRECT_URI } from "@/lib/constants";
+import { generateCodeChallenge, generateRandomString } from "@/lib/utils";
 import { SpotifyApi } from "@spotify/web-api-ts-sdk";
 
 if (!KEYS.SPOTIFY_CLIENT_ID || !KEYS.SPOTIFY_CLIENT_SECRET) {
@@ -14,13 +15,55 @@ const sdk = SpotifyApi.withClientCredentials(
 
 export const authorize = async () => {
   try {
-    // if (localStorage.getItem("spotify_token"))
-    //   return localStorage.getItem("spotify_token");
+    const SCOPES = "user-read-private user-read-email";
 
-    const res = await apis.spotify.authorize();
-    console.log("spotify authorize", res);
-    localStorage.setItem("spotify_token", res.access_token);
-    return JSON.stringify(res.access_token);
+    async function handleSpotifyCallback() {
+      const authCode = localStorage.getItem("spotify_authCode") || "";
+      if (authCode) {
+        await apis.spotify.fetchAccessToken(authCode);
+      }
+    }
+
+    async function redirectToSpotifyLogin(): Promise<void> {
+      const codeVerifier = generateRandomString(64);
+      const codeChallenge = await generateCodeChallenge(codeVerifier);
+
+      localStorage.setItem("spotify_code_verifier", codeVerifier);
+
+      const authUrl = new URL("https://accounts.spotify.com/authorize");
+      authUrl.searchParams.append(
+        "client_id",
+        KEYS.SPOTIFY_CLIENT_ID as string
+      );
+      authUrl.searchParams.append("response_type", "code");
+      authUrl.searchParams.append("redirect_uri", REDIRECT_URI);
+      authUrl.searchParams.append("scope", SCOPES);
+      authUrl.searchParams.append("code_challenge_method", "S256");
+      authUrl.searchParams.append("code_challenge", codeChallenge);
+
+      const popup = window.open(
+        authUrl.toString(),
+        "Spotify Login",
+        "popup,width=600,height=600"
+      );
+
+      return new Promise<void>((resolve, reject) => {
+        const interval = setInterval(() => {
+          if (popup?.closed) {
+            clearInterval(interval);
+            handleSpotifyCallback()
+              .then((res) => {
+                console.log("resolve", res), resolve(res);
+              })
+              .catch(reject);
+          }
+        }, 1000);
+      });
+    }
+
+    const res = await redirectToSpotifyLogin();
+
+    return res;
   } catch (error) {
     console.error(error);
     return `${error}`;

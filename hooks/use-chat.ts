@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { llm } from "@/langchain/llm";
 import {
   HumanMessage,
   SystemMessage,
