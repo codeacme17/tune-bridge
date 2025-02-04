@@ -10,3 +10,6 @@ export const KEYS = {
 };
 
 export const REDIRECT_URI = "http://localhost:7934/redirect";
+
+export const SPOTIFY_SCOPES =
+  "user-read-private user-read-email user-read-playback-state user-modify-playback-state";

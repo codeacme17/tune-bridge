@@ -1,4 +1,3 @@
-import { DynamicTool } from "langchain/tools";
 import { z } from "zod";
 import { tool } from "@langchain/core/tools";
 import { spotifyService } from "@/service";
@@ -17,12 +16,23 @@ const getCurrentUserProfileTool = tool(
   }
 );
 
-const skipNextTool = new DynamicTool({
-  name: "skipNext",
-  description: "Skip to the next song",
-  func: () => spotifyService.skipNext(),
-  returnDirect: true,
-});
+const getAvailableDevicesTool = tool(
+  (token: string) => spotifyService.getAvailableDevices(token),
+  {
+    name: "getAvailableDevices",
+    description: "Get available devices",
+    schema: z.string().describe("The user's access token"),
+  }
+);
+
+const skipNextTool = tool(
+  (deviceId: string) => spotifyService.skipNext(deviceId),
+  {
+    name: "skipNext",
+    description: "Skip to the next song",
+    schema: z.string().describe("The device id"),
+  }
+);
 
 const findUriByNametool = tool(
   (input: string) => spotifyService.findSongByName(input),
@@ -52,7 +62,9 @@ const getPlayListTool = tool(
 export const spotifyTools = [
   fetchAccessTokenTool,
   getCurrentUserProfileTool,
+  getAvailableDevicesTool,
   findUriByNametool,
   getUserPlaylistsTool,
   getPlayListTool,
+  skipNextTool,
 ];

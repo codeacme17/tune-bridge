@@ -37,7 +37,7 @@ const MessageItem = (props: MessageItemProps) => {
         <div className="flex rounded-b-xl rounded-tr-xl bg-slate-50 p-4 dark:bg-slate-800 sm:max-w-md md:max-w-2xl">
           <div
             dangerouslySetInnerHTML={{ __html: renderContent }}
-            className="w-full overflow-clip"
+            className="w-full flex flex-wrap text-wrap overflow-scroll"
           ></div>
         </div>
       </div>

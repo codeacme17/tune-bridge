@@ -1,5 +1,5 @@
 import { apis } from "@/apis";
-import { KEYS, REDIRECT_URI } from "@/lib/constants";
+import { KEYS, REDIRECT_URI, SPOTIFY_SCOPES } from "@/lib/constants";
 import { generateCodeChallenge, generateRandomString } from "@/lib/utils";
 import { SpotifyApi } from "@spotify/web-api-ts-sdk";
 
@@ -10,13 +10,11 @@ if (!KEYS.SPOTIFY_CLIENT_ID || !KEYS.SPOTIFY_CLIENT_SECRET) {
 const sdk = SpotifyApi.withClientCredentials(
   KEYS.SPOTIFY_CLIENT_ID,
   KEYS.SPOTIFY_CLIENT_SECRET,
-  ["playlist-modify-public", "user-modify-playback-state"]
+  SPOTIFY_SCOPES.split(",")
 );
 
 export const fetchAccessToken = async () => {
   try {
-    const SCOPES = "user-read-private user-read-email";
-
     async function handleSpotifyCallback() {
       return await apis.spotify.fetchAccessToken();
     }
@@ -31,7 +29,7 @@ export const fetchAccessToken = async () => {
       authUrl.searchParams.append("client_id", KEYS.SPOTIFY_CLIENT_ID);
       authUrl.searchParams.append("response_type", "code");
       authUrl.searchParams.append("redirect_uri", REDIRECT_URI);
-      authUrl.searchParams.append("scope", SCOPES);
+      authUrl.searchParams.append("scope", SPOTIFY_SCOPES);
       authUrl.searchParams.append("code_challenge_method", "S256");
       authUrl.searchParams.append("code_challenge", codeChallenge);
 
@@ -71,6 +69,16 @@ export const getCurrentUserProfile = async (token: string) => {
   }
 };
 
+export const getAvailableDevices = async (token: string) => {
+  try {
+    const res = await apis.spotify.getAvailableDevices(token);
+    return JSON.stringify(res);
+  } catch (error) {
+    console.error(error);
+    return `${error}`;
+  }
+};
+
 export const findSongByName = async (name: string) => {
   const res = await sdk.search(name, ["track"]);
   return res.tracks.items[0].uri;
@@ -78,9 +86,17 @@ export const findSongByName = async (name: string) => {
 
 export const playUri = async (uri: string) => {};
 
-export const skipNext = async () => {
-  const res = await sdk.player.skipToNext("Bearer");
-  return "Skipped to next song";
+export const skipNext = async (deviceId: string) => {
+  try {
+    if (localStorage.getItem("spotify_active_device")) {
+      deviceId = localStorage.getItem("spotify_active_device") || "";
+    }
+    const res = await apis.spotify.skipNext(deviceId);
+    return res;
+  } catch (error) {
+    console.error(error);
+    return `${error}`;
+  }
 };
 
 export const findUriByLyrics = async (lyrics: string) => {

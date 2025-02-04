@@ -36,16 +36,16 @@ export const spotify = {
     return data;
   },
 
-  async getCurrentProfile(token: string) {
+  async getCurrentProfile(accessToken: string) {
     try {
       if (localStorage.getItem("spotify_access_token")) {
-        token = localStorage.getItem("spotify_access_token") || "";
+        accessToken = localStorage.getItem("spotify_access_token") || "";
       }
 
       const res = await fetch("https://api.spotify.com/v1/me", {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       });
 
@@ -60,6 +60,62 @@ export const spotify = {
       return data;
     } catch (error) {
       console.error("Spotify get current user error:", error);
+      throw error;
+    }
+  },
+
+  async getAvailableDevices(accessToken: string) {
+    if (localStorage.getItem("spotify_access_token")) {
+      accessToken = localStorage.getItem("spotify_access_token") || "";
+    }
+
+    const res = await fetch("https://api.spotify.com/v1/me/player/devices", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(
+        `Spotify API Error: ${res.status} - ${JSON.stringify(data)}`
+      );
+    }
+
+    const activeDevice = data.devices.find((device: any) => device.is_active);
+    if (activeDevice) {
+      localStorage.setItem("spotify_active_device", activeDevice.id);
+    }
+    return activeDevice;
+  },
+
+  async skipNext(deviceId: string) {
+    try {
+      const accessToken = localStorage.getItem("spotify_access_token") || "";
+
+      const res = await fetch(
+        `https://api.spotify.com/v1/me/player/next?device_id=${deviceId}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+      console.log("skip next", res);
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(
+          `Spotify API Error: ${res.status} - ${JSON.stringify(data)}`
+        );
+      }
+
+      return "Skipped to next song successfully";
+    } catch (error) {
+      console.error("Spotify skip next error:", error);
       throw error;
     }
   },
