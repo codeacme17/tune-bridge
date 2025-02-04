@@ -1,10 +1,10 @@
-import { tool } from "@langchain/core/tools";
+import { DynamicTool } from "langchain/tools";
 import { z } from "zod";
-import { DynamicStructuredTool, DynamicTool } from "langchain/tools";
+import { tool } from "@langchain/core/tools";
 import { spotifyService } from "@/service";
 
-const authorizeTool = tool(() => spotifyService.authorize(), {
-  name: "getToken",
+const fetchAccessTokenTool = tool(() => spotifyService.fetchAccessToken(), {
+  name: "fetchAccessTokenTool",
   description: "Get access token",
 });
 
@@ -13,7 +13,7 @@ const getCurrentUserProfileTool = tool(
   {
     name: "getCurrentUserProfile",
     description: "Get the current user's profile",
-    schema: z.string().describe("The user token"),
+    schema: z.string().describe("The user's access token"),
   }
 );
 
@@ -49,25 +49,8 @@ const getPlayListTool = tool(
   }
 );
 
-const findUriByNameTool = new DynamicTool({
-  name: "findSongByName",
-  description: "Use a song name to find a song uri",
-  func: (input: string) => spotifyService.findSongByName(input),
-  returnDirect: true,
-});
-
-const findUriByLyricsTool = new DynamicStructuredTool({
-  name: "findUriByLyrics",
-  description: "Use lyrics to find a song uri",
-  schema: z.object({
-    lyrics: z.string().describe("lyrics in the user's request"),
-  }),
-  returnDirect: true,
-  func: ({ lyrics }) => spotifyService.findUriByLyrics(lyrics),
-});
-
 export const spotifyTools = [
-  authorizeTool,
+  fetchAccessTokenTool,
   getCurrentUserProfileTool,
   findUriByNametool,
   getUserPlaylistsTool,

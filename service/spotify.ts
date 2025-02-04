@@ -13,15 +13,12 @@ const sdk = SpotifyApi.withClientCredentials(
   ["playlist-modify-public", "user-modify-playback-state"]
 );
 
-export const authorize = async () => {
+export const fetchAccessToken = async () => {
   try {
     const SCOPES = "user-read-private user-read-email";
 
     async function handleSpotifyCallback() {
-      const authCode = localStorage.getItem("spotify_authCode") || "";
-      if (authCode) {
-        await apis.spotify.fetchAccessToken(authCode);
-      }
+      return await apis.spotify.fetchAccessToken();
     }
 
     async function redirectToSpotifyLogin(): Promise<void> {
@@ -31,10 +28,7 @@ export const authorize = async () => {
       localStorage.setItem("spotify_code_verifier", codeVerifier);
 
       const authUrl = new URL("https://accounts.spotify.com/authorize");
-      authUrl.searchParams.append(
-        "client_id",
-        KEYS.SPOTIFY_CLIENT_ID as string
-      );
+      authUrl.searchParams.append("client_id", KEYS.SPOTIFY_CLIENT_ID);
       authUrl.searchParams.append("response_type", "code");
       authUrl.searchParams.append("redirect_uri", REDIRECT_URI);
       authUrl.searchParams.append("scope", SCOPES);
@@ -51,11 +45,7 @@ export const authorize = async () => {
         const interval = setInterval(() => {
           if (popup?.closed) {
             clearInterval(interval);
-            handleSpotifyCallback()
-              .then((res) => {
-                console.log("resolve", res), resolve(res);
-              })
-              .catch(reject);
+            handleSpotifyCallback().then(resolve).catch(reject);
           }
         }, 1000);
       });
@@ -63,7 +53,7 @@ export const authorize = async () => {
 
     const res = await redirectToSpotifyLogin();
 
-    return res;
+    return JSON.stringify(res);
   } catch (error) {
     console.error(error);
     return `${error}`;
