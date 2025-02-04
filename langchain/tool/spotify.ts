@@ -3,8 +3,8 @@ import { tool } from "@langchain/core/tools";
 import { spotifyService } from "@/service";
 
 const fetchAccessTokenTool = tool(() => spotifyService.fetchAccessToken(), {
-  name: "fetchAccessTokenTool",
-  description: "Get access token",
+  name: "loginSpotifyTool",
+  description: "Login to Spotify and get the access token",
 });
 
 const getCurrentUserProfileTool = tool(
