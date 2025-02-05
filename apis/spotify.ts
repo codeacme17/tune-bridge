@@ -91,6 +91,41 @@ export const spotify = {
     return activeDevice;
   },
 
+  async playUri(uri: string, deviceId: string) {
+    if (!uri) return "Need to get the uri of the song";
+    if (!deviceId) return "Need to get the device id";
+
+    const accessToken = localStorage.getItem("spotify_access_token") || "";
+
+    try {
+      const res = await fetch(
+        `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            uris: [uri],
+          }),
+        }
+      );
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(
+          `Spotify API Error: ${res.status} - ${JSON.stringify(data)}`
+        );
+      }
+
+      return "Playing song successfully";
+    } catch (error) {
+      console.error("Spotify play uri error:", error);
+      throw error;
+    }
+  },
+
   async skipNext(deviceId: string) {
     try {
       const accessToken = localStorage.getItem("spotify_access_token") || "";

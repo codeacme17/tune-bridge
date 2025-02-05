@@ -80,11 +80,28 @@ export const getAvailableDevices = async (token: string) => {
 };
 
 export const findSongByName = async (name: string) => {
-  const res = await sdk.search(name, ["track"]);
-  return res.tracks.items[0].uri;
+  try {
+    const res = await sdk.search(name, ["track"]);
+    console.log(res.tracks.items[0].uri);
+    return res.tracks.items[0].uri;
+  } catch (error) {
+    console.error(error);
+    return `${error}`;
+  }
 };
 
-export const playUri = async (uri: string) => {};
+export const playUri = async (uri: string, deviceId: string) => {
+  try {
+    if (localStorage.getItem("spotify_active_device")) {
+      deviceId = localStorage.getItem("spotify_active_device") || "";
+    }
+    const res = await apis.spotify.playUri(uri, deviceId);
+    return res;
+  } catch (error) {
+    console.error(error);
+    return `${error}`;
+  }
+};
 
 export const skipNext = async (deviceId: string) => {
   try {

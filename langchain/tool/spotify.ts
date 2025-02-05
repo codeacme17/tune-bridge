@@ -25,6 +25,19 @@ const getAvailableDevicesTool = tool(
   }
 );
 
+const playUriTool = tool(
+  ({ uri, deviceId }: { uri: string; deviceId: string }) =>
+    spotifyService.playUri(uri, deviceId),
+  {
+    name: "playUri",
+    description: "Play a song by uri",
+    schema: z.object({
+      uri: z.string().describe("The song uri"),
+      deviceId: z.string().describe("The device id"),
+    }),
+  }
+);
+
 const skipNextTool = tool(
   (deviceId: string) => spotifyService.skipNext(deviceId),
   {
@@ -63,6 +76,7 @@ export const spotifyTools = [
   fetchAccessTokenTool,
   getCurrentUserProfileTool,
   getAvailableDevicesTool,
+  playUriTool,
   findUriByNametool,
   getUserPlaylistsTool,
   getPlayListTool,
