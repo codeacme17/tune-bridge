@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useChat } from "@/hooks/use-chat";
 import { SendIcon, LoaderCircleIcon } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
