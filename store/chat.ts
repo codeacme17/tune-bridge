@@ -2,10 +2,10 @@ import { create } from "zustand";
 import { MessageContent } from "@langchain/core/messages";
 
 export interface IMessage {
-  content: string;
-  role: "user" | "assistant";
   id: string;
-  createAt: number;
+  content: string;
+  role?: "user" | "assistant";
+  createAt?: number;
 }
 
 interface ChatStore {

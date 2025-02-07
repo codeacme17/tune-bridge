@@ -4,6 +4,7 @@ import { tools } from "./tool";
 import { createToolCallingAgent } from "langchain/agents";
 import { AgentExecutor } from "langchain/agents";
 import { BaseCallbackHandler } from "@langchain/core/callbacks/base";
+import { useChatStore } from "@/store";
 
 interface AgentParams {
   llmParams: ILlmParams;
@@ -15,6 +16,11 @@ export const agent = (params: AgentParams) => {
   const handler = BaseCallbackHandler.fromMethods({
     handleToolStart(tool) {
       console.log("handleToolStart", { tool });
+    },
+    handleAgentAction(action) {
+      const { log } = action;
+      const { setMessagesWithStreaming, messages } = useChatStore.getState();
+      setMessagesWithStreaming(`> ${log} \n`, messages[messages.length - 1].id);
     },
   });
 
@@ -40,6 +46,7 @@ export const agent = (params: AgentParams) => {
         agent,
         tools,
         callbacks: [handler],
+        verbose: true,
       });
 
       return agentExecutor;
