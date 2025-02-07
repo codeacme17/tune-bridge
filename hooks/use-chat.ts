@@ -38,7 +38,7 @@ export const useChat = () => {
    */
   useEffect(() => {
     const { init } = agent({
-      llmParams: { llm: "openai", streaming: false },
+      llmParams: { llm: "openai", streaming: true },
     });
     agentRef.current = init();
 
@@ -90,7 +90,7 @@ export const useChat = () => {
       setMessages([userMessage], { merge: true });
 
       // Invoke the agent with the user input
-      await invokeAgent(userInput);
+      await invoke(userInput);
     } catch (err: any) {
       setError(err);
       toast({
@@ -105,7 +105,7 @@ export const useChat = () => {
   /**
    * Call the Agent to get the AI response
    */
-  const invokeAgent = async (message: string) => {
+  const invoke = async (message: string) => {
     try {
       if (!agentRef.current) {
         throw new Error("Model not initialized");
