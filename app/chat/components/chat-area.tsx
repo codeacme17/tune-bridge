@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useChat } from "@/hooks/use-chat";
 import { SendIcon, LoaderCircleIcon } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,15 +13,17 @@ export const ChatArea = () => {
 
   const { sendMessage, loading } = useChat();
 
-  useEffect(() => {
-    if (!textareaRef.current) return;
-    textareaRef.current.focus();
-  }, [textareaRef.current]);
-
   const handleSend = async () => {
     if (!inputValue.trim()) return;
     setInputValue("");
     await sendMessage(inputValue);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
   };
 
   return (
@@ -31,6 +33,7 @@ export const ChatArea = () => {
           <Textarea
             id="prompt-input"
             ref={textareaRef}
+            onKeyDown={handleKeyDown}
             rows={4}
             placeholder="Enter your prompt"
             required

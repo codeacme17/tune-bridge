@@ -3,6 +3,7 @@ import { ILlmParams, llm } from "./llm";
 import { tools } from "./tool";
 import { createToolCallingAgent } from "langchain/agents";
 import { AgentExecutor } from "langchain/agents";
+import { BaseCallbackHandler } from "@langchain/core/callbacks/base";
 
 interface AgentParams {
   llmParams: ILlmParams;
@@ -10,6 +11,12 @@ interface AgentParams {
 
 export const agent = (params: AgentParams) => {
   const { llmParams } = params;
+
+  const handler = BaseCallbackHandler.fromMethods({
+    handleToolStart(tool) {
+      console.log("handleToolStart", { tool });
+    },
+  });
 
   const init = () => {
     try {
@@ -26,11 +33,13 @@ export const agent = (params: AgentParams) => {
         llm: model,
         tools,
         prompt,
+        streamRunnable: llmParams.streaming,
       });
 
       const agentExecutor = new AgentExecutor({
         agent,
         tools,
+        callbacks: [handler],
       });
 
       return agentExecutor;

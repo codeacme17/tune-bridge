@@ -10,45 +10,64 @@ export interface IMessage {
 
 interface ChatStore {
   messages: IMessage[];
+
   /**
-   * Set a new message list, merge new messages and update the state
-   * @param newMessages New messages to be added
+   * Set a new message list. By default, it replaces the old messages.
+   * If merge = true, it will merge new messages with the old ones.
    */
-  setMessages: (newMessages: IMessage[]) => void;
+  setMessages: (newMessages: IMessage[], options?: { merge?: boolean }) => void;
+
   /**
-   * Set a new message content chunk to the target message
-   * @param chunk New message content chunk
-   * @param id Target message id
+   * Stream new content to a target message by id
    */
   setMessagesWithStreaming: (chunk: MessageContent, id: string) => void;
+
   loading: boolean;
-  /**
-   * Set the loading state
-   * @param loading Loading state
-   */
   setLoading: (loading: boolean) => void;
 }
 
 export const useChatStore = create<ChatStore>((set) => ({
   messages: [],
-  setMessages: (newMessages) => {
+
+  setMessages: (newMessages, options) => {
+    const { merge = false } = options ?? {};
+
     set((state) => {
-      const existingIds = new Set(state.messages.map((msg) => msg.id));
-      const filteredMessages = newMessages.filter(
-        (msg) => !existingIds.has(msg.id)
-      );
-      return { messages: [...state.messages, ...filteredMessages] };
+      if (!merge) {
+        // Directly replace all messages
+        return { messages: newMessages };
+      } else {
+        // Merge logic: use a Map to handle duplicates by id
+        const updatedMap = new Map<string, IMessage>();
+
+        // put existing messages into map
+        for (const msg of state.messages) {
+          updatedMap.set(msg.id, msg);
+        }
+
+        // override or add new messages
+        for (const msg of newMessages) {
+          updatedMap.set(msg.id, msg);
+        }
+
+        return { messages: Array.from(updatedMap.values()) };
+      }
     });
   },
+
   setMessagesWithStreaming: (chunk, id) => {
     if (typeof chunk !== "string") {
       throw new Error("Chunk content must be a string");
     }
     set((state) => {
       const updatedMessages = state.messages.map((message) => {
-        return message.id === id
-          ? { ...message, content: message.content + chunk }
-          : message;
+        if (message.id === id) {
+          return {
+            ...message,
+            content: message.content + chunk,
+          };
+        }
+        return message;
       });
       return { messages: updatedMessages };
     });

@@ -1,17 +1,14 @@
+"use client";
+
 import { useEffect, useRef, useState } from "react";
-import { llm } from "@/langchain/llm";
-import {
-  HumanMessage,
-  SystemMessage,
-  AIMessage,
-} from "@langchain/core/messages";
+import { HumanMessage, AIMessage } from "@langchain/core/messages";
 import { generate } from "shortid";
 import { IMessage, useChatStore } from "@/store";
 import { agent } from "@/langchain/agent";
 import { LOCAL_STORAGE_KEY } from "@/lib/constants";
-import { useScroll } from "./use-scroll";
 import { useToast } from "./use-toast";
 import { cloneDeep } from "lodash";
+import { useScroll } from "./use-scroll";
 
 export const useChat = () => {
   const {
@@ -19,158 +16,102 @@ export const useChat = () => {
     setMessages,
     loading,
     setLoading,
-    setMessagesWithStreaming,
+    // If you need special handling with setMessagesWithStreaming, keep it
   } = useChatStore();
 
   const [error, setError] = useState<Error | null>(null);
-
   const { toast } = useToast();
+  const [initialized, setInitialized] = useState(false);
 
+  // Reference to store the agent instance
+  const agentRef = useRef<any>(null);
+
+  // Used to scroll to the bottom. Assume you have an element with id="chat-preview"
   const { scrollToBottom } = useScroll({
     element: document.getElementById("chat-preview") as HTMLElement,
   });
 
-  const agentRef = useRef<any>(null);
-
+  /**
+   * On the first render:
+   * 1. Initialize the agent
+   * 2. Load history messages from localStorage
+   */
   useEffect(() => {
     const { init } = agent({
-      llmParams: { llm: "openai", streaming: false },
+      llmParams: { llm: "openai", streaming: true },
     });
     agentRef.current = init();
 
+    // Load messages from localStorage
     const localData = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (!localData) {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify([]));
+    if (localData) {
+      try {
+        const parsed = JSON.parse(localData) as IMessage[];
+        setMessages(parsed);
+      } catch (err) {
+        console.error("Failed to parse localStorage data:", err);
+        setMessages([]);
+      }
     } else {
-      setMessages(JSON.parse(localData));
+      setMessages([]);
     }
-  }, []);
 
-  const sendMessage = async (message: string) => {
+    setInitialized(true);
+  }, [setMessages]);
+
+  /**
+   * Whenever messages change:
+   * 1. Write to localStorage
+   * 2. Scroll to the bottom
+   */
+  useEffect(() => {
+    if (!initialized) return;
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(messages));
+    scrollToBottom();
+  }, [messages, scrollToBottom]);
+
+  /**
+   * Send a user message
+   */
+  const sendMessage = async (userInput: string) => {
     try {
+      if (!userInput.trim()) return;
       setLoading(true);
 
-      const newMessage: IMessage = {
-        content: message,
+      // Create a user message
+      const userMessage: IMessage = {
+        content: userInput,
         role: "user",
         id: `user-${generate()}`,
         createAt: Date.now(),
       };
 
-      setMessages([newMessage]);
+      // Append the user message to the end of the messages array
+      setMessages([userMessage], { merge: true });
 
-      scrollToBottom();
-
-      localStorage.setItem(
-        LOCAL_STORAGE_KEY,
-        JSON.stringify([...messages, newMessage])
-      );
-
-      await invokeAgent(message);
-      setLoading(false);
-    } catch (error: any) {
-      setError(error);
+      // Invoke the agent with the user input
+      await invoke(userInput);
+    } catch (err: any) {
+      setError(err);
       toast({
         variant: "destructive",
         title: "Error",
-        description: error,
+        description: String(err),
       });
+      setLoading(false);
     }
   };
 
-  // invoke function to send message to the model
+  /**
+   * Call the Agent to get the AI response
+   */
   const invoke = async (message: string) => {
-    setLoading(true);
-
     try {
-      if (!agentRef.current) throw new Error("model not initialized");
-
-      const chatHistory = [...messages]
-        .splice(-5) // only last 5 messages
-        .map((m) => {
-          if (m.role === "user") return new HumanMessage(m.content);
-          else return new AIMessage({ content: m.content, id: m.id });
-        });
-
-      const res = await agentRef.current.invoke({
-        chat_history: chatHistory,
-        input: message,
-        agent_scratchpad: "",
-      });
-
-      console.log("[res]", res);
-
-      setMessages([
-        {
-          content: res.content as string,
-          role: "assistant",
-          id: res.id as string,
-          createAt: Date.now(),
-        },
-      ]);
-
-      return res.content;
-    } catch (error: any) {
-      console.error("invoke error ===>", error);
-      setError(error);
-    }
-
-    setLoading(false);
-  };
-
-  // invokeStream function to send message to the model by streaming
-  const invokeStream = async () => {
-    try {
-      if (!agentRef.current) throw new Error("model not initialized");
-      const { setMessages, setLoading, messages } = useChatStore.getState();
-
-      const assistantMessage: IMessage = {
-        content: "",
-        role: "assistant",
-        id: `assistant-${generate()}`,
-        createAt: Date.now(),
-      };
-
-      setMessages([assistantMessage]);
-
-      const tempMessages = [...messages];
-      const responseStream = await agentRef.current.stream([
-        new SystemMessage("You can ask me anything!"),
-        ...tempMessages
-          .splice(-5) // only last 5 messages
-          .map((m) => {
-            if (m.role === "user") return new HumanMessage(m.content);
-            else return new AIMessage({ content: m.content, id: m.id });
-          }),
-      ]);
-
-      for await (const chunk of responseStream) {
-        // console.log("[streaming]", chunk);
-        assistantMessage.content += chunk.content;
-        setMessagesWithStreaming(chunk.content, assistantMessage.id);
-        scrollToBottom();
+      if (!agentRef.current) {
+        throw new Error("Model not initialized");
       }
 
-      setLoading(false);
-      localStorage.setItem(
-        LOCAL_STORAGE_KEY,
-        JSON.stringify([...messages, assistantMessage])
-      );
-
-      scrollToBottom();
-      return assistantMessage.content;
-    } catch (error: any) {
-      console.error(error);
-    }
-  };
-
-  // invokeAgent function to send message to the model
-  const invokeAgent = async (message: string) => {
-    setLoading(true);
-
-    try {
-      if (!agentRef.current) throw new Error("model not initialized");
-
+      // Build the initial structure of the assistant message
       const assistantMessage: IMessage = {
         content: "",
         role: "assistant",
@@ -178,34 +119,35 @@ export const useChat = () => {
         createAt: Date.now(),
       };
 
-      const chatHistory = cloneDeep(messages)
-        .splice(-5) // only last 5 messages
+      // Take the last 5 messages as context
+      const recentMessages = cloneDeep(messages)
+        .slice(-5)
         .map((m) => {
           if (m.role === "user") return new HumanMessage(m.content);
-          else return new AIMessage({ content: m.content, id: m.id });
+          return new AIMessage({ content: m.content, id: m.id });
         });
 
+      // Append the assistant message to the messages array
+      setMessages([assistantMessage], { merge: true });
+
+      // Invoke the agent
       const res = await agentRef.current.invoke({
-        chat_history: chatHistory,
+        chat_history: recentMessages,
         input: message,
         agent_scratchpad: "",
       });
 
+      setMessages([assistantMessage], { merge: true });
+
+      // Assign the AI's response content
       assistantMessage.content = res.output;
 
-      localStorage.setItem(
-        LOCAL_STORAGE_KEY,
-        JSON.stringify([...messages, assistantMessage])
-      );
-
-      setMessages([assistantMessage]);
-
-      scrollToBottom();
-
+      setLoading(false);
       return assistantMessage.content;
-    } catch (error: any) {
-      console.error("invoke error ===>", error);
-      setError(error);
+    } catch (err: any) {
+      console.error("invokeAgent error ===>", err);
+      setError(err);
+      setLoading(false);
     }
   };
 
