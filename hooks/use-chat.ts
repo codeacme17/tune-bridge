@@ -2,25 +2,19 @@
 
 import { useEffect, useRef, useState } from "react";
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
-import { generate } from "shortid";
-import { IMessage, useChatStore } from "@/store";
 import { agent } from "@/langchain/agent";
-import { LOCAL_STORAGE_KEY } from "@/lib/constants";
-import { useToast } from "./use-toast";
 import { cloneDeep } from "lodash";
+import { generate } from "shortid";
+import { useToast } from "./use-toast";
 import { useScroll } from "./use-scroll";
+import { IMessage, useChatStore } from "@/store";
+import { LOCAL_STORAGE_KEY } from "@/lib/constants";
 
 export const useChat = () => {
-  const {
-    messages,
-    setMessages,
-    loading,
-    setLoading,
-    // If you need special handling with setMessagesWithStreaming, keep it
-  } = useChatStore();
+  const { messages, setMessages, loading, setLoading } = useChatStore();
+  const { toast } = useToast();
 
   const [error, setError] = useState<Error | null>(null);
-  const { toast } = useToast();
   const [initialized, setInitialized] = useState(false);
 
   // Reference to store the agent instance
@@ -131,19 +125,15 @@ export const useChat = () => {
       setMessages([assistantMessage], { merge: true });
 
       // Invoke the agent
-      const res = await agentRef.current.invoke({
+      await agentRef.current.invoke({
         chat_history: recentMessages,
         input: message,
         agent_scratchpad: "",
       });
 
-      setMessages([assistantMessage], { merge: true });
-
-      // Assign the AI's response content
-      assistantMessage.content = res.output;
+      // setMessages([assistantMessage], { merge: true });
 
       setLoading(false);
-      return assistantMessage.content;
     } catch (err: any) {
       console.error("invokeAgent error ===>", err);
       setError(err);

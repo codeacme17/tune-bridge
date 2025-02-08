@@ -1,9 +1,8 @@
+import { BaseCallbackHandler } from "@langchain/core/callbacks/base";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
+import { createToolCallingAgent, AgentExecutor } from "langchain/agents";
 import { ILlmParams, llm } from "./llm";
 import { tools } from "./tool";
-import { createToolCallingAgent } from "langchain/agents";
-import { AgentExecutor } from "langchain/agents";
-import { BaseCallbackHandler } from "@langchain/core/callbacks/base";
 import { useChatStore } from "@/store";
 
 interface AgentParams {
@@ -14,9 +13,6 @@ export const agent = (params: AgentParams) => {
   const { llmParams } = params;
 
   const handler = BaseCallbackHandler.fromMethods({
-    handleToolStart(tool) {
-      console.log("handleToolStart", { tool });
-    },
     handleAgentAction(action) {
       const { log } = action;
       const { setMessagesWithStreaming, messages } = useChatStore.getState();
