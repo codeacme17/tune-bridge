@@ -1,4 +1,4 @@
 import { spotifyTools } from "./spotify";
-import { testTools } from "./test";
+import { neteaseTools } from "./netease";
 
-export const tools = [...spotifyTools, ...testTools];
+export const tools = [...spotifyTools, ...neteaseTools];

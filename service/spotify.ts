@@ -13,7 +13,7 @@ const sdk = SpotifyApi.withClientCredentials(
   SPOTIFY_SCOPES.split(",")
 );
 
-export const fetchAccessToken = async () => {
+export const login = async () => {
   try {
     async function handleSpotifyCallback() {
       return await apis.spotify.fetchAccessToken();
@@ -33,11 +33,7 @@ export const fetchAccessToken = async () => {
       authUrl.searchParams.append("code_challenge_method", "S256");
       authUrl.searchParams.append("code_challenge", codeChallenge);
 
-      const popup = window.open(
-        authUrl.toString(),
-        "Spotify Login",
-        "popup,width=600,height=600"
-      );
+      const popup = window.open(authUrl.toString(), "Spotify Login", "popup,width=600,height=600");
 
       return new Promise<void>((resolve, reject) => {
         const interval = setInterval(() => {
