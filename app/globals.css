@@ -1,10 +1,8 @@
+@import "../styles/markdown.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-body {
-  font-family: Arial, Helvetica, sans-serif;
-}
 
 @layer base {
   :root {
@@ -78,11 +76,4 @@ html.dark .shiki span {
   font-style: var(--shiki-dark-font-style) !important;
   font-weight: var(--shiki-dark-font-weight) !important;
   text-decoration: var(--shiki-dark-text-decoration) !important;
-}
-
-pre {
-  padding: 10px;
-  margin: 10px 0px;
-  overflow-x: scroll;
-  border-radius: 10px;
 }

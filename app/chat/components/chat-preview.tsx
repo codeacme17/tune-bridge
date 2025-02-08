@@ -37,7 +37,10 @@ const MessageItem = (props: MessageItemProps) => {
         <div className="flex rounded-b-xl rounded-tr-xl bg-slate-50 p-4 dark:bg-slate-800 sm:max-w-md md:max-w-2xl">
           <div
             dangerouslySetInnerHTML={{ __html: renderContent }}
-            className="w-full flex flex-wrap text-wrap overflow-scroll"
+            className="markdown-body w-full flex flex-wrap text-wrap overflow-scroll"
+            style={{
+              backgroundColor: "transparent",
+            }}
           ></div>
         </div>
       </div>
@@ -53,7 +56,13 @@ const MessageItem = (props: MessageItemProps) => {
         />
 
         <div className="flex min-h-[85px] rounded-b-xl rounded-tl-xl bg-slate-50 p-4 dark:bg-slate-800 sm:min-h-0 sm:max-w-md md:max-w-2xl">
-          <div dangerouslySetInnerHTML={{ __html: renderContent }}></div>
+          <div
+            className="markdown-body"
+            dangerouslySetInnerHTML={{ __html: renderContent }}
+            style={{
+              backgroundColor: "transparent",
+            }}
+          ></div>
         </div>
         <div className="mr-2 mt-1 flex flex-col-reverse gap-2 text-slate-500 sm:flex-row"></div>
       </div>
